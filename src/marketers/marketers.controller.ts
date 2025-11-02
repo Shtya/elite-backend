@@ -12,6 +12,7 @@ import { CRUD } from 'common/crud.service';
 export class MarketersController {
   constructor(private readonly marketersService: MarketersService) {}
 
+	
   @Post()
   @Roles(UserType.ADMIN)
   create(@Body() createMarketerDto: CreateMarketerDto) {

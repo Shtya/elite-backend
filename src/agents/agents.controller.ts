@@ -1,6 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { imageUploadOptions } from 'common/upload.config';
+
 import { AgentsService } from './agents.service';
-import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
+import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto } from '../../dto/agents.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -14,30 +17,47 @@ export class AgentsController {
 
   @Post()
   @Roles(UserType.ADMIN)
-  create(@Body() createAgentDto: CreateAgentDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'identityProof', maxCount: 1 },
+        { name: 'residencyDocument', maxCount: 1 },
+      ],
+      imageUploadOptions,
+    ),
+  )
+  async create(
+    @Body() createAgentDto: any,
+    @UploadedFiles()
+    files?: {
+      identityProof?: Express.Multer.File[];
+      residencyDocument?: Express.Multer.File[];
+    },
+  ) {
+    // Map uploaded files -> URLs (if present)
+    if (files?.identityProof?.[0]) {
+      createAgentDto.identityProofUrl = `/uploads/images/${files.identityProof[0].filename}`;
+    }
+    if (files?.residencyDocument?.[0]) {
+      createAgentDto.residencyDocumentUrl = `/uploads/images/${files.residencyDocument[0].filename}`;
+    }
+
+    // Enforce presence: either URL in body or uploaded file must exist
+    if (!createAgentDto.identityProofUrl || !createAgentDto.residencyDocumentUrl) {
+      throw new BadRequestException('identityProof or residencyDocument is missing (send as URL or file).');
+    }
+
     return this.agentsService.create(createAgentDto);
   }
 
- @Get()
+  @Get()
   @Roles(UserType.ADMIN, UserType.QUALITY)
   findAll(@Query() query: any) {
     const filters: Record<string, any> = {};
-
     if (query.status) filters.status = query.status;
     if (query.cityId) filters.city = { id: Number(query.cityId) };
 
-    return CRUD.findAll(
-      this.agentsService.agentsRepository, // repo
-      'agent',                              // alias
-      query.q || query.search,              // search
-      query.page,                           // page
-      query.limit,                          // limit
-      query.sortBy ,          // sortBy (avoid default 'created_at' mismatch)
-      query.sortOrder ,            // sortOrder
-      ['user', 'city'],                     // relations
-      ['status'],                           // searchFields (root-only fields)
-      filters,                              // filters (exact matches; supports nested)
-    );
+    return CRUD.findAll(this.agentsService.agentsRepository, 'agent', query.q || query.search, query.page, query.limit, query.sortBy, query.sortOrder, ['user', 'city'], ['status'], filters);
   }
 
   @Get(':id')
@@ -48,7 +68,30 @@ export class AgentsController {
 
   @Patch(':id')
   @Roles(UserType.ADMIN)
-  update(@Param('id') id: string, @Body() updateAgentDto: UpdateAgentDto) {
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'identityProof', maxCount: 1 },
+        { name: 'residencyDocument', maxCount: 1 },
+      ],
+      imageUploadOptions,
+    ),
+  )
+  update(
+    @Param('id') id: string,
+    @Body() updateAgentDto: any,
+    @UploadedFiles()
+    files?: {
+      identityProof?: Express.Multer.File[];
+      residencyDocument?: Express.Multer.File[];
+    },
+  ) {
+    if (files?.identityProof?.[0]) {
+      updateAgentDto.identityProofUrl = `/uploads/images/${files.identityProof[0].filename}`;
+    }
+    if (files?.residencyDocument?.[0]) {
+      updateAgentDto.residencyDocumentUrl = `/uploads/images/${files.residencyDocument[0].filename}`;
+    }
     return this.agentsService.update(+id, updateAgentDto);
   }
 

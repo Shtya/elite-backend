@@ -26,10 +26,8 @@ import { PayoutAccountsModule } from './payout-accounts/payout-accounts.module';
 import { MasterDataModule } from './master-data/master-data.module';
 import { MessageTemplatesModule } from './message-templates/message-templates.module';
 import { Role, UserRole } from 'entities/global.entity';
-import { APP_GUARD } from '@nestjs/core';
-import { RolesGuard } from './auth/guards/roles.guard';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { SystemModule } from './system-status/system-status.module';
+import { FavoritesModule } from './favorite-property/favorite-property.module';
 
 @Module({
   imports: [
@@ -74,6 +72,7 @@ import { SystemModule } from './system-status/system-status.module';
     MasterDataModule,
     MessageTemplatesModule,
     SystemModule,
+    FavoritesModule,
   ],
   providers: [
 		QueryFailedErrorFilter , 

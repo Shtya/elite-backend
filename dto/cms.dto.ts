@@ -53,7 +53,6 @@ export class UpdatePageSectionDto {
 }
 
 export class UpdateSiteSettingsDto {
-  // latitude & longitude stored as decimal → numeric validation
   @IsOptional()
   @Transform(({ value }) => parseFloat(value))
   @IsNumber({}, { message: 'Latitude must be a valid number' })
@@ -68,45 +67,33 @@ export class UpdateSiteSettingsDto {
   @IsUrl({ require_protocol: true }, { message: 'introVideoUrl must be a valid URL' })
   introVideoUrl?: string;
 
-  @IsOptional()
-  @IsNumber({}, { message: 'Customer count must be a number' })
-  customerCount?: number;
+  @IsOptional() @IsNumber({}, { message: 'Customer count must be a number' }) customerCount?: number;
+  @IsOptional() @IsNumber({}, { message: 'Years of experience must be a number' }) yearsExperience?: number;
+  @IsOptional() @IsNumber({}, { message: 'Project count must be a number' }) projectCount?: number;
 
-  @IsOptional()
-  @IsNumber({}, { message: 'Years of experience must be a number' })
-  yearsExperience?: number;
+  @IsOptional() @IsEmail({}, { message: 'Email must be a valid email address' }) email?: string;
+  @IsOptional() @IsString() phoneNumber?: string;
 
-  @IsOptional()
-  @IsNumber({}, { message: 'Project count must be a number' })
-  projectCount?: number;
+  @IsOptional() @IsUrl({ require_protocol: true }) twitterUrl?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) instagramUrl?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) snapchatUrl?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) tiktokUrl?: string;
+  @IsOptional() @IsUrl({ require_protocol: true }) youtubeUrl?: string;
 
+  // NEW: text-only policies
   @IsOptional()
-  @IsEmail({}, { message: 'Email must be a valid email address' })
-  email?: string;
+  @IsString()
+  @MaxLength(500000, { message: 'termsHtml is too long' }) // safety upper bound
+  termsHtml?: string;
 
   @IsOptional()
   @IsString()
-  phoneNumber?: string;
+  address?: string;
 
   @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'Twitter URL must be a valid URL' })
-  twitterUrl?: string;
-
-  @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'Instagram URL must be a valid URL' })
-  instagramUrl?: string;
-
-  @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'Snapchat URL must be a valid URL' })
-  snapchatUrl?: string;
-
-  @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'TikTok URL must be a valid URL' })
-  tiktokUrl?: string;
-
-  @IsOptional()
-  @IsUrl({ require_protocol: true }, { message: 'YouTube URL must be a valid URL' })
-  youtubeUrl?: string;
+  @IsString()
+  @MaxLength(500000, { message: 'privacyHtml is too long' })
+  privacyHtml?: string;
 }
 
 const trim = () => Transform(({ value }) => (typeof value === 'string' ? value.trim() : value));

@@ -84,8 +84,8 @@ export class CmsController {
   @Patch('settings/site')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.ADMIN)
-  updateSiteSettings(@Body() updateSiteSettingsDto: UpdateSiteSettingsDto) {
-    return this.cmsService.updateSiteSettings(updateSiteSettingsDto);
+  updateSiteSettings(@Body() dto: UpdateSiteSettingsDto) {
+    return this.cmsService.updateSiteSettings(dto);
   }
 
   @Get('settings/footer')

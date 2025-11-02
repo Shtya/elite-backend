@@ -685,6 +685,23 @@ export class PropertyMedia extends CoreEntity {
   orderIndex: number;
 }
 
+@Entity('favorite_properties')
+@Unique('UQ_favorite_user_property', ['user', 'property'])
+@Index('IDX_favorite_user', ['user'])
+export class FavoriteProperty extends CoreEntity {
+  @ManyToOne(() => User, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Property, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'property_id' })
+  property: Property;
+
+  // Optional note/tag (handy if you ever want it)
+  @Column({ name: 'note', type: 'varchar', length: 255, nullable: true })
+  note?: string | null;
+}
+
 /* ===================== "اعرض عقارك" Requests ===================== */
 @Entity('property_listing_requests')
 export class PropertyListingRequest extends CoreEntity {
@@ -1196,6 +1213,9 @@ export class SiteSettings extends CoreEntity {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  address: string;
+
   @Column({ name: 'phone_number', type: 'varchar', length: 20 })
   phoneNumber: string;
 
@@ -1217,8 +1237,13 @@ export class SiteSettings extends CoreEntity {
   @ManyToOne(() => User, { eager: true, nullable: true })
   @JoinColumn({ name: 'updated_by' })
   updatedBy?: User | null;
-}
 
+  @Column({ name: 'terms_html', type: 'text', nullable: true })
+  termsHtml?: string | null;
+
+  @Column({ name: 'privacy_html', type: 'text', nullable: true })
+  privacyHtml?: string | null;
+}
 
 @Entity('footer_settings')
 export class FooterSettings extends CoreEntity {
@@ -1235,7 +1260,6 @@ export class FooterSettings extends CoreEntity {
   @JoinColumn({ name: 'updated_by' })
   updatedBy?: User | null;
 }
-
 
 @Entity('static_pages')
 export class StaticPage extends CoreEntity {

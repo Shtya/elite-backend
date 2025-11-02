@@ -29,6 +29,8 @@ export class UsersService {
       userType: createUserDto.userType,
       phoneNumber: createUserDto.phoneNumber,
       profilePhotoUrl: createUserDto.profilePhotoUrl,
+      residencyIdUrl: createUserDto.residencyIdUrl,
+      nationalIdUrl: createUserDto.nationalIdUrl,
       passwordHash,
       verificationStatus: VerificationStatus.VERIFIED, // Admin-created users can be considered verified
       verifiedAt: new Date(),
@@ -38,7 +40,6 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
- 
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');

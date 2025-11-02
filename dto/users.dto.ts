@@ -57,6 +57,9 @@ export class UpdateUserDto {
   @IsString()
   profilePhotoUrl?: string;
 
+  @IsOptional() @IsString() nationalIdUrl?: string;
+  @IsOptional() @IsString() residencyIdUrl?: string;
+
   @IsOptional()
   @IsEnum(VerificationStatus)
   verificationStatus?: VerificationStatus;
