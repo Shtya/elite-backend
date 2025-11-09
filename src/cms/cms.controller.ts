@@ -34,8 +34,7 @@ export class CmsController {
   }
 
   @Get('pages/:pageId/sections')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserType.ADMIN)
+ 
   listSections(@Param('pageId') pageId: string, @Query() query: any) {
     const filters: Record<string, any> = { page: { id: Number(pageId) } };
     return CRUD.findAll(this.cmsService.pageSectionsRepository, 'page_section', query.q || query.search, query.page, query.limit, query.sortBy ?? 'createdAt', query.sortOrder ?? 'ASC', ['page'], ['title', 'key'], filters);

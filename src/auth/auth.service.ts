@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, AuthSession, VerificationStatus, NotificationType, NotificationChannel, UserType } from 'entities/global.entity';
-import { LoginDto, RegisterDto, VerifyOtpDto, ChangePasswordDto, ResetPasswordDto, UpdateProfileDto } from '../../dto/auth.dto';
+import { LoginDto, RegisterDto, VerifyOtpDto, ChangePasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../../dto/auth.dto';
 import { MailService } from 'common/nodemailer';
 import * as bcrypt from 'bcryptjs';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -120,7 +120,7 @@ export class AuthService {
 
     return this.generateTokens(user);
   }
-
+  
   async login({ email, password }: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.usersRepository.findOne({ where: { email } });
 
@@ -272,5 +272,51 @@ export class AuthService {
       where: { id: payload.sub },
       select: ['id', 'email', 'phoneNumber', 'userType', 'verificationStatus', 'isActive'],
     });
+  }
+  async sendLoginOtp({ email }: EmailLoginDto): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+  
+    if (!user) throw new NotFoundException('No account found with this email');
+  
+    const otp = this.generateOtp();
+    user.emailOtp = otp;
+    user.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await this.usersRepository.save(user);
+  
+    try {
+      await this.mailService.sendOtpEmail(user.email, {
+        otp,
+        userName: user.fullName,
+        purpose: 'login',
+      });
+    } catch (error) {
+      console.error('❌ Failed to send login OTP email:', error);
+    }
+  
+    return { message: 'A login code has been sent to your email.' };
+  }
+  
+  async verifyLoginOtp({ email, otp }: VerifyEmailOtpDto): Promise<{ accessToken: string; refreshToken: string }> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+  
+    if (!user || !user.emailOtp || user.emailOtp !== otp || user.emailOtpExpiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+  
+    user.emailOtp = null;
+    user.emailOtpExpiresAt = null;
+    await this.usersRepository.save(user);
+  
+    if (user.verificationStatus !== VerificationStatus.VERIFIED) {
+      user.verificationStatus = VerificationStatus.VERIFIED;
+      user.verifiedAt = new Date();
+      await this.usersRepository.save(user);
+    }
+  
+    if (user.isActive === false) {
+      throw new UnauthorizedException('Your account has been deactivated.');
+    }
+  
+    return this.generateTokens(user);
   }
 }

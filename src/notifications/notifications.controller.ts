@@ -19,7 +19,7 @@ export class NotificationsController {
   }
 
   @Get()
-  @Roles(UserType.ADMIN)
+  @Roles(UserType.ADMIN,UserType.AGENT)
   findAll(@Query() query: any) {
     const filters: Record<string, any> = {};
     if (query.userId) filters.user = { id: Number(query.userId) };

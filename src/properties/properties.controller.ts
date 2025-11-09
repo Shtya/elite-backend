@@ -24,14 +24,35 @@ function parseMedias(input: any): PropertyMediaDto[] {
 }
 
 @Controller('properties')
-@UseGuards(JwtAuthGuard)
 export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
+
   @Post()
+  @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)
-  create(@Body() createPropertyDto: CreatePropertyDto) {
-    return this.propertiesService.create(createPropertyDto);
+  @UseInterceptors(FilesInterceptor('media', 50, mixedUploadOptions))
+  async create(
+    @Body() createPropertyDto: CreatePropertyDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const property = await this.propertiesService.create(createPropertyDto);
+
+    if (files && files.length > 0) {
+      const uploadedMedias = files.map((file, i) => {
+        const isImage = /^image\//.test(file.mimetype);
+        const basePath = isImage ? '/uploads/images/' : '/uploads/videos/';
+        return {
+          mediaUrl: `${basePath}${file.filename}`,
+          isPrimary: i === 0, 
+          orderIndex: i,
+        };
+      });
+
+      await this.propertiesService.addManyMedia(property.id, uploadedMedias);
+    }
+
+    return this.propertiesService.findOne(property.id);
   }
 
   @Get()
@@ -64,20 +85,20 @@ export class PropertiesController {
   findOne(@Param('id') id: string) {
     return this.propertiesService.findOne(+id);
   }
-
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)
   update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto) {
     return this.propertiesService.update(+id, updatePropertyDto);
   }
-
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)
   remove(@Param('id') id: string) {
     return this.propertiesService.remove(+id);
   }
-
   @Post(':id/media')
+  @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)
   @UseInterceptors(FilesInterceptor('media', 50, mixedUploadOptions))
   async addMedia(@Param('id') id: string, @Body() body: CreateManyPropertyMediaDto, @UploadedFiles() files: Express.Multer.File[]) {
@@ -118,6 +139,8 @@ export class PropertiesController {
   // }
 
   @Delete(':id/media/:mediaId')
+  @UseGuards(JwtAuthGuard)
+
   @Roles(UserType.ADMIN, UserType.AGENT)
   removeMedia(@Param('id') id: string, @Param('mediaId') mediaId: string) {
     return this.propertiesService.removeMedia(+id, +mediaId);

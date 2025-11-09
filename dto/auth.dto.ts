@@ -96,3 +96,19 @@ export class UpdateProfileDto {
   @IsString()
   profilePhotoUrl?: string;
 }
+
+export class EmailLoginDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
+export class VerifyEmailOtpDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsString()
+  @IsNotEmpty()
+  otp: string;
+}

@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req, Put, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, VerifyOtpDto, RefreshTokenDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, UpdateProfileDto } from '../../dto/auth.dto';
+import { LoginDto, RegisterDto, VerifyOtpDto, RefreshTokenDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../../dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Request } from 'express';
 
@@ -17,11 +17,11 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
+  // @Post('login')
+  // @HttpCode(HttpStatus.OK)
+  // async login(@Body() loginDto: LoginDto) {
+  //   return this.authService.login(loginDto);
+  // }
 
   @Post('verify-otp')
   @HttpCode(HttpStatus.OK)
@@ -69,4 +69,13 @@ export class AuthController {
   async getProfile(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.id);
   }
+  @Post('login/send-otp')
+async sendLoginOtp(@Body() dto: EmailLoginDto) {
+  return this.authService.sendLoginOtp(dto);
+}
+
+@Post('login/verify-otp')
+async verifyLoginOtp(@Body() dto: VerifyEmailOtpDto) {
+  return this.authService.verifyLoginOtp(dto);
+}
 }
