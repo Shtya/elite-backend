@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto, UpdateAppointmentDto, AssignAgentDto, UpdateStatusDto, AppointmentQueryDto } from '../../dto/appointments.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -7,6 +7,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
+interface RequestWithUser extends Request {
+  user: any;
+}
+
 @Controller('appointments')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AppointmentsController {
@@ -14,7 +18,9 @@ export class AppointmentsController {
 
   @Post()
   @Roles(UserType.CUSTOMER, UserType.ADMIN, UserType.AGENT)
-  create(@Body() createAppointmentDto: CreateAppointmentDto) {
+  create(@Body() createAppointmentDto: CreateAppointmentDto,@Req() req: RequestWithUser) {
+    const userId = Number(req.user.id);
+    createAppointmentDto.customerId = userId;
     return this.appointmentsService.create(createAppointmentDto);
   }
 

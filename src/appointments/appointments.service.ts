@@ -35,14 +35,13 @@ export class AppointmentsService {
     }
 
     let agent = null;
-    if (createAppointmentDto.agentId) {
+    
       agent = await this.usersRepository.findOne({
-        where: { id: createAppointmentDto.agentId },
+        where: { id: property.createdBy.id },
       });
       if (!agent) {
         throw new NotFoundException('Agent not found');
       }
-    }
 
     const appointment = this.appointmentsRepository.create({
       ...createAppointmentDto,

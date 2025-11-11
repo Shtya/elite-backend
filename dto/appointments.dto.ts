@@ -6,7 +6,7 @@ export class CreateAppointmentDto {
   @IsNumber()
   propertyId: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   customerId: number;
 
