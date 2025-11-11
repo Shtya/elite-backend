@@ -140,7 +140,10 @@ export class AgentsService {
   }
 async getDashboard(agentId: number) {
   const agent = await this.agentsRepository.findOne({where:{user:{id:agentId}}});
-
+  if (!agent) {
+    throw new NotFoundException('Agent not found for this user');
+  }
+  console.log("Agent found:", agent.id);
   const totalAppointments = await this.appointmentRepo.count({
     where: { agent: { id: agent.id } },
   });

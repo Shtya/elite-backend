@@ -11,23 +11,21 @@ export class CreatePropertyDto {
   description: string;
 
   @IsNotEmpty()
-  @IsNumber()
   propertyTypeId: number;
 
   @IsNotEmpty()
-  @IsNumber()
   cityId: number;
 
   @IsNotEmpty()
-  @IsNumber()
+  
   areaId: number;
 
   @IsNotEmpty()
-  @IsNumber()
+  
   bedrooms: number;
 
   @IsNotEmpty()
-  @IsNumber()
+
   bathrooms: number;
 
   @IsNotEmpty()
@@ -39,11 +37,11 @@ export class CreatePropertyDto {
   price?: string;
 
   @IsNotEmpty()
-  @IsObject()
+  
   specifications: Record<string, any>;
 
   @IsNotEmpty()
-  @IsObject()
+  
   guarantees: Record<string, any>;
 
   @IsEnum(AccessType)

@@ -89,6 +89,7 @@ export class AgentsController {
     if (!agentId) {
       throw new BadRequestException("Agent information not found in token");
     }
+    console.log("Fetching dashboard for agentId:", agentId);
     return this.agentsService.getDashboard(agentId);
   }
 
