@@ -645,18 +645,18 @@ export class Property extends CoreEntity {
   @JoinColumn({ name: 'property_type_id' })
   propertyType: PropertyType;
 
-  @ManyToOne(() => City, { eager: true, onDelete: 'SET NULL', nullable: true })
+  @ManyToOne(() => City, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'city_id' })
   city: City;
   
-  @ManyToOne(() => Area, { eager: true, onDelete: 'SET NULL', nullable: true })
-  @JoinColumn({ name: 'area_id' })
-  area: Area;
+
   @RelationId((p: Property) => p.city)
   cityId: number;
 
 
-
+  @ManyToOne(() => Area, { eager: true, onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'area_id' })
+  area: Area;
   @RelationId((p: Property) => p.area)
   areaId: number;
 

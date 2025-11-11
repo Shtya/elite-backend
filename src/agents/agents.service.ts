@@ -23,12 +23,13 @@ export class AgentsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(createAgentDto: CreateAgentDto): Promise<Agent> {
-    const existingAgent = await this.agentsRepository.findOne({
-      where: { user: { id: createAgentDto.userId } },
+  async create(createAgentDto: CreateAgentDto,userId:number): Promise<Agent> {
+    const existingAgent = await this.usersRepository.findOne({
+      where: {  id: createAgentDto.userId },
     });
-
-    if (existingAgent) {
+    console.log('Existing Agent:', existingAgent);
+    console.log('CreateAgentDto:', createAgentDto);
+    if (existingAgent.userType == UserType.AGENT) {
       throw new ConflictException('Agent already exists for this user');
     }
 

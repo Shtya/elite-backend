@@ -44,18 +44,38 @@ export class CRUD {
     if (relations?.length) {
       CRUD.joinNestedRelations(query, repository, entityName, relations);
     }
+    relations?.forEach(relation => {
+      const alias = relation.includes('.') ? relation.replace(/\./g, '_') : relation;
+      const alreadyJoined = query.expressionMap.joinAttributes.some(j => j.alias?.name === alias);
+      if (!alreadyJoined) {
+        query.leftJoinAndSelect(`${entityName}.${relation}`, alias);
+      }
+    });
+    
     if (filters && Object.keys(filters).length > 0) {
       const flatFilters = flatten(filters);
       Object.entries(flatFilters).forEach(([flatKey, value]) => {
         if (value !== null && value !== undefined && value !== '') {
           const paramKey = flatKey.replace(/\./g, '_');
-          const aliasPath = flatKey.includes('.') 
-          ? `${entityName}_${flatKey.replace(/\./g, '_')}` 
-          : `${entityName}.${flatKey}`;
-        
-        query.andWhere(`${aliasPath} = :${paramKey}`, {
-          [paramKey]: value,
-        });
+          let aliasPath: string;
+
+          if (flatKey.includes('.')) {
+            const parts = flatKey.split('.');
+            if (parts.length > 1) {
+              const relation = parts.slice(0, -1).join('.'); 
+              const column = parts[parts.length - 1];       
+              aliasPath = `${relation}.${column}`;
+            } else {
+              aliasPath = `${entityName}_${flatKey.replace(/\./g, '_')}`;
+            }
+          } else {
+            aliasPath = `${entityName}.${flatKey}`;
+          }
+          
+          query.andWhere(`${aliasPath} = :${paramKey}`, {
+            [paramKey]: value,
+          });
+          
         
         }
       });

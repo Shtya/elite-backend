@@ -47,7 +47,7 @@ export class AgentsController {
     ),
   )
   async create(
-    @Body() createAgentDto: CreateAgentDto,
+    @Body() createAgentDto: any,
     @Req() req: RequestWithUser,
     @UploadedFiles()
     files?: {
@@ -59,15 +59,13 @@ export class AgentsController {
     if (isNaN(createAgentDto.cityId)) {
       throw new BadRequestException('cityId must be a number');
     }
-    if (req.user.type !== UserType.ADMIN && !createAgentDto.userId) {
+    if (req.user.type == UserType.ADMIN && !createAgentDto.userId) {
       throw new BadRequestException(
         'The admin must provide userId for the customer',
       );
     }
-    if (req.user.type !== UserType.ADMIN) {
-      createAgentDto.userId = req.user.id;
-    }
 
+    
     if (files?.identityProof?.[0]) {
       createAgentDto.identityProof = `/uploads/images/${files.identityProof[0].filename}`;
     }
@@ -82,7 +80,7 @@ export class AgentsController {
       );
     }
 
-    return this.agentsService.create(createAgentDto);
+    return this.agentsService.create(createAgentDto,req.user.id);
   }
   @Get("dashboard")
   @Roles(UserType.AGENT)
