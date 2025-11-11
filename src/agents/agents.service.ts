@@ -24,12 +24,10 @@ export class AgentsService {
   ) {}
 
   async create(createAgentDto: CreateAgentDto,userId:number): Promise<Agent> {
-    console.log('Creating agent for userId:', userId);
     const existingAgent = await this.usersRepository.findOne({
       where: {  id: userId },
     });
-    console.log('Existing Agent:', existingAgent);
-    console.log('CreateAgentDto:', createAgentDto);
+
     if (!existingAgent) {
       throw new NotFoundException('User not found');
     }
@@ -143,11 +141,10 @@ async getDashboard(agentId: number) {
   if (!agent) {
     throw new NotFoundException('Agent not found for this user');
   }
-  console.log("Agent found:", agent.id);
+
   const totalAppointments = await this.appointmentRepo.count({
     where: { agent: { id: agent.id } },
   });
-
   const balance = await this.balanceRepo.findOne({ where: { agent: { id: agent.id } } });
 
   const recentPayments = await this.paymentRepo.find({

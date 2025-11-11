@@ -156,8 +156,30 @@ export class CRUD {
     };
   }
 
-  static joinNestedRelations<T>(query: SelectQueryBuilder<T>, repository: Repository<T>, rootAlias: string, relations: string[]) {
+  static joinNestedRelations<T>(
+    query: SelectQueryBuilder<T>,
+    repository: Repository<T>,
+    rootAlias: string,
+    relations: string[]
+  ) {
     const addedAliases = new Set<string>();
+  
+    relations.forEach(path => {
+      const segments = path.split('.');
+      let parentAlias = rootAlias;
+  
+      segments.forEach(seg => {
+        const alias = `${parentAlias}_${seg}`;
+        // Prevent duplicate joins
+        if (!addedAliases.has(alias)) {
+          query.leftJoinAndSelect(`${parentAlias}.${seg}`, alias);
+          addedAliases.add(alias);
+        }
+        parentAlias = alias; // next segment uses this alias
+      });
+    });
+  
+  
 
     function validatePathAndReturnJoins(path: string) {
       const segments = path.split('.');

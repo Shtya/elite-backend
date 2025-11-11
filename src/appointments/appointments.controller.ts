@@ -20,31 +20,68 @@ export class AppointmentsController {
 
   @Get()
   @Roles(UserType.ADMIN, UserType.AGENT, UserType.QUALITY)
-  findAll(@Query() query: any) {
-    // equality / nested filters
-    const filters: Record<string, any> = {};
-    if (query.customerId) filters.customer = { id: Number(query.customerId) };
-    if (query.agentId) filters.agent = { id: Number(query.agentId) };
-    if (query.propertyId) filters.property = { id: Number(query.propertyId) };
-    if (query.status) filters.status = query.status;
-
-    return CRUD.findAll(
-      this.appointmentsService.appointmentsRepository,
-      'appointment',
-      query.q || query.search,
-      query.page,
-      query.limit,
-      query.sortBy ?? 'appointmentDate',
-      query.sortOrder ?? 'DESC',
-      // relations (nested OK)
-      ['property', 'customer', 'agent', 'property.city', 'property.area'],
-      // searchFields (add root fields if you have any like ['notes'])
-      [],
-      // equality filters
-      filters,
-    );
+  async findAll(@Query() query: any) {
+    const repository = this.appointmentsService.appointmentsRepository;
+  
+    // Pagination
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+  
+    // Sorting
+    const sortBy = query.sortBy || 'appointmentDate';
+    const sortOrder: 'ASC' | 'DESC' = (query.sortOrder || 'DESC').toUpperCase() as any;
+  
+    // Base query
+    const qb = repository.createQueryBuilder('appointment')
+      .skip(skip)
+      .take(limit);
+  
+    // Nested relations
+    const relations = ['property', 'property.city', 'property.area', 'customer', 'agent'];
+    const addedAliases = new Set<string>();
+    relations.forEach(path => {
+      const segments = path.split('.');
+      let parentAlias = 'appointment';
+  
+      segments.forEach(seg => {
+        const alias = `${parentAlias}_${seg}`;
+        if (!addedAliases.has(alias)) {
+          qb.leftJoinAndSelect(`${parentAlias}.${seg}`, alias);
+          addedAliases.add(alias);
+        }
+        parentAlias = alias;
+      });
+    });
+  
+    // Filters
+    if (query.customerId) qb.andWhere('appointment.customer_id = :customerId', { customerId: Number(query.customerId) });
+    if (query.agentId) qb.andWhere('appointment.agent_id = :agentId', { agentId: Number(query.agentId) });
+    if (query.propertyId) qb.andWhere('appointment.property_id = :propertyId', { propertyId: Number(query.propertyId) });
+    if (query.status) qb.andWhere('appointment.status = :status', { status: query.status });
+  
+    // Optional search (if needed)
+    if (query.q) {
+      qb.andWhere(
+        '(appointment.customer_notes ILIKE :search OR appointment.agent_notes ILIKE :search)',
+        { search: `%${query.q}%` }
+      );
+    }
+  
+    // Sorting
+    qb.orderBy(`appointment.${sortBy}`, sortOrder);
+  
+    // Execute
+    const [records, total] = await qb.getManyAndCount();
+  
+    return {
+      total_records: total,
+      current_page: page,
+      per_page: limit,
+      records,
+    };
   }
-
+  
   @Get(':id')
   @Roles(UserType.ADMIN, UserType.AGENT, UserType.CUSTOMER, UserType.QUALITY)
   findOne(@Param('id') id: string) {

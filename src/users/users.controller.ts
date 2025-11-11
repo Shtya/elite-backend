@@ -50,7 +50,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserType.ADMIN)
+  @Roles(UserType.ADMIN, UserType.AGENT)
   findAll(@Query() query: any) {
     const filters: Record<string, any> = {};
     if (query.userType) filters.userType = query.userType;
@@ -59,7 +59,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserType.ADMIN)
+  @Roles(UserType.ADMIN, UserType.AGENT)
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(+id);
   }

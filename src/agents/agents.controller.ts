@@ -89,30 +89,43 @@ export class AgentsController {
     if (!agentId) {
       throw new BadRequestException("Agent information not found in token");
     }
-    console.log("Fetching dashboard for agentId:", agentId);
     return this.agentsService.getDashboard(agentId);
   }
 
-  @Get()
-  @Roles(UserType.ADMIN, UserType.QUALITY)
-  findAll(@Query() query: any) {
-    const filters: Record<string, any> = {};
-    if (query.status) filters.status = query.status;
-    if (query.cityId) filters.city = { id: Number(query.cityId) };
 
-    return CRUD.findAll(
-      this.agentsService.agentsRepository,
-      "agent",
-      query.q || query.search,
-      query.page,
-      query.limit,
-      query.sortBy,
-      query.sortOrder,
-      ["user", "city"],
-      ["status"],
-      filters
-    );
-  }
+  @Get()
+@Roles(UserType.ADMIN, UserType.QUALITY, UserType.AGENT)
+async findAll(@Query() query: any) {
+  const repository = this.agentsService.agentsRepository;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  const qb = repository.createQueryBuilder('agent')
+    .leftJoinAndSelect('agent.user', 'agent_user')
+    .leftJoinAndSelect('agent.city', 'city')
+    .skip(skip)
+    .take(limit)
+    .orderBy('agent.createdAt', 'DESC');
+
+  // Filters
+  if (query.status) qb.andWhere('agent.status = :status', { status: query.status });
+  if (query.cityId) qb.andWhere('city.id = :cityId', { cityId: Number(query.cityId) });
+
+  // Only users of type AGENT
+  qb.andWhere('agent_user.user_type = :userType', { userType: UserType.AGENT });
+
+  const [records, total] = await qb.getManyAndCount();
+
+  return {
+    total_records: total,
+    current_page: page,
+    per_page: limit,
+    records,
+  };
+}
+
+  
 
   @Get(":id")
   @Roles(UserType.ADMIN, UserType.QUALITY)
