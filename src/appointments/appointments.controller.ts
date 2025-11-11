@@ -129,28 +129,43 @@ export class AppointmentsController {
       filters, // equality + nested filters
     );
   }
-
   @Get('agent/:agentId')
   @Roles(UserType.AGENT, UserType.ADMIN)
-  findByAgent(@Param('agentId') agentId: string, @Query() query: any) {
-    const filters: Record<string, any> = {
-      agent: { id: Number(agentId) }, // path param → nested filter
+  async findByAgent(
+    @Param('agentId') agentId: string,
+    @Query() query: any,
+  ) {
+    const repository = this.appointmentsService.appointmentsRepository;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+  
+    const qb = repository.createQueryBuilder('appointment')
+      .leftJoinAndSelect('appointment.property', 'property')
+      .leftJoinAndSelect('property.city', 'city')        // nested join
+      .leftJoinAndSelect('property.area', 'area')
+      .leftJoinAndSelect('appointment.customer', 'customer')
+      .leftJoinAndSelect('appointment.agent', 'agent')
+      .where('appointment.agent_id = :agentId', { agentId: Number(agentId) })
+      .skip(skip)
+      .take(limit)
+      .orderBy('appointment.appointmentDate', 'DESC');
+  
+    // Optional filters
+    if (query.status) {
+      qb.andWhere('appointment.status = :status', { status: query.status });
+    }
+    if (query.propertyId) {
+      qb.andWhere('property.id = :propertyId', { propertyId: Number(query.propertyId) });
+    }
+  
+    const [records, total] = await qb.getManyAndCount();
+  
+    return {
+      total_records: total,
+      current_page: page,
+      per_page: limit,
+      records,
     };
-
-    if (query.status) filters.status = query.status;
-    if (query.propertyId) filters.property = { id: Number(query.propertyId) };
-
-    return CRUD.findAll(
-      this.appointmentsService.appointmentsRepository, // repo
-      'appointment', // alias
-      query.q || query.search, // search
-      query.page, // page
-      query.limit, // limit
-      query.sortBy ?? 'appointmentDate', // sortBy
-      query.sortOrder ?? 'DESC', // sortOrder
-      ['property', 'customer', 'property.city', 'property.area'], // relations
-      [], // searchFields (root-only if any)
-      filters, // equality + nested filters
-    );
   }
-}
+  }

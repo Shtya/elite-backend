@@ -42,26 +42,50 @@ export class NotificationsController {
   }
 
   @Get('my')
-  getMyNotifications(@Query() query: any, @Req() req: any) {
+  async getMyNotifications(@Query() query: any, @Req() req: any) {
+    const repository = this.notificationsService.notificationsRepository;
     const userId = Number(req?.user?.id);
-    const filters: Record<string, any> = { user: { id: userId } };
-    if (query.type) filters.type = query.type;
-    if (query.status) filters.status = query.status;
-    if (query.channel) filters.channel = query.channel;
-
-    return CRUD.findAll(
-      this.notificationsService.notificationsRepository,
-      'notification',
-      query.q || query.search,
-      query.page,
-      query.limit,
-      query.sortBy ?? 'createdAt',
-      query.sortOrder ?? 'DESC',
-      [], // no extra relations needed here (already scoped to user)
-      ['title', 'message'], // searchable fields
-      filters,
-    );
+  
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+  
+    const qb = repository.createQueryBuilder('notification')
+      .leftJoinAndSelect('notification.user', 'user')
+      .where('user.id = :userId', { userId })
+      .skip(skip)
+      .take(limit)
+      .orderBy('notification.createdAt', query.sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+  
+    // Optional filters
+    if (query.type) {
+      qb.andWhere('notification.type = :type', { type: query.type });
+    }
+  
+    if (query.status) {
+      qb.andWhere('notification.status = :status', { status: query.status });
+    }
+  
+    if (query.channel) {
+      qb.andWhere('notification.channel = :channel', { channel: query.channel });
+    }
+  
+    // Search by title or message
+    if (query.q || query.search) {
+      const search = `%${query.q || query.search}%`;
+      qb.andWhere('(notification.title ILIKE :search OR notification.message ILIKE :search)', { search });
+    }
+  
+    const [records, total] = await qb.getManyAndCount();
+  
+    return {
+      total_records: total,
+      current_page: page,
+      per_page: limit,
+      records,
+    };
   }
+  
 
   @Get(':id')
   @Roles(UserType.ADMIN)
