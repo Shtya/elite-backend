@@ -4,7 +4,7 @@ export declare class TrafficController {
     private readonly service;
     constructor(service: TrafficService);
     createPartner(body: any): Promise<{
-        partner: import("entities/global.entity").ReferralPartner;
+        partner: import("src/entities/global.entity").ReferralPartner;
         shareUrl: string;
     }>;
     buildShareUrl(id: string, body: any): Promise<{
@@ -50,10 +50,10 @@ export declare class TrafficController {
         page: number;
         limit: number;
         total: number;
-        items: import("entities/global.entity").ReferralPartner[];
+        items: import("src/entities/global.entity").ReferralPartner[];
     }>;
     updatePartner(id: string, body: any): Promise<{
-        partner: import("entities/global.entity").ReferralPartner;
+        partner: import("src/entities/global.entity").ReferralPartner;
         shareUrl: string;
     }>;
     deletePartner(id: string): Promise<{
@@ -62,5 +62,5 @@ export declare class TrafficController {
     track(body: any, req: Request): Promise<{
         visitorId: number;
     }>;
-    createConversion(body: any, req: Request): Promise<import("entities/global.entity").Conversion>;
+    createConversion(body: any, req: Request): Promise<import("src/entities/global.entity").Conversion>;
 }

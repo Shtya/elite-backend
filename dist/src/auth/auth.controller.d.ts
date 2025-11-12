@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto, VerifyOtpDto, RefreshTokenDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../../dto/auth.dto';
+import { LoginDto, RegisterDto, VerifyOtpDto, RefreshTokenDto, ChangePasswordDto, ForgotPasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../dto/auth.dto';
 import { Request } from 'express';
 interface RequestWithUser extends Request {
     user: any;
@@ -25,7 +25,7 @@ export declare class AuthController {
     logout(req: RequestWithUser): Promise<{
         message: string;
     }>;
-    updateProfile(req: RequestWithUser, updateProfileDto: UpdateProfileDto): Promise<import("../../entities/global.entity").User>;
+    updateProfile(req: RequestWithUser, updateProfileDto: UpdateProfileDto): Promise<import("../entities/global.entity").User>;
     changePassword(req: RequestWithUser, changePasswordDto: ChangePasswordDto): Promise<{
         message: string;
     }>;
@@ -35,7 +35,7 @@ export declare class AuthController {
     resetPassword(resetPasswordDto: ResetPasswordDto): Promise<{
         message: string;
     }>;
-    getProfile(req: RequestWithUser): Promise<import("../../entities/global.entity").User>;
+    getProfile(req: RequestWithUser): Promise<import("../entities/global.entity").User>;
     sendLoginOtp(dto: EmailLoginDto): Promise<{
         message: string;
     }>;

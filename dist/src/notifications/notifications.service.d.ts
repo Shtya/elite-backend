@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { Notification, NotificationChannel, NotificationType, User } from 'entities/global.entity';
-import { CreateNotificationDto, UpdateNotificationDto, NotificationQueryDto, SendNotificationDto } from '../../dto/notifications.dto';
+import { Notification, NotificationChannel, NotificationType, User } from 'src/entities/global.entity';
+import { CreateNotificationDto, UpdateNotificationDto, NotificationQueryDto, SendNotificationDto } from '../dto/notifications.dto';
 export declare class NotificationsService {
     readonly notificationsRepository: Repository<Notification>;
     private usersRepository;

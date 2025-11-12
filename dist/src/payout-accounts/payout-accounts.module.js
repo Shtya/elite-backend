@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const payout_accounts_service_1 = require("./payout-accounts.service");
 const payout_accounts_controller_1 = require("./payout-accounts.controller");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let PayoutAccountsModule = class PayoutAccountsModule {
 };
 exports.PayoutAccountsModule = PayoutAccountsModule;

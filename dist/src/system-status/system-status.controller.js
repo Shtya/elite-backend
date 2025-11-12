@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SystemStatusController = void 0;
 const common_1 = require("@nestjs/common");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let SystemStatusController = class SystemStatusController {
     getAllStatuses() {
         return {

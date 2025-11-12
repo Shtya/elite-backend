@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CalendarController = void 0;
 const common_1 = require("@nestjs/common");
 const calendar_service_1 = require("./calendar.service");
-const calendar_dto_1 = require("../../dto/calendar.dto");
+const calendar_dto_1 = require("../dto/calendar.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const crud_service_1 = require("../../common/crud.service");
 let CalendarController = class CalendarController {
     constructor(calendarService) {

@@ -1,4 +1,4 @@
-import { CoreEntity } from 'entities/global.entity';
+import { CoreEntity } from 'src/entities/global.entity';
 export declare class TeamMember extends CoreEntity {
     name: string;
     position: string;

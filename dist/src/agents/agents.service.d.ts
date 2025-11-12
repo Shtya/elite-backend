@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { Agent, AgentBalance, AgentPayment, Appointment, CustomerReview, User } from 'entities/global.entity';
-import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
+import { Agent, AgentBalance, AgentPayment, Appointment, CustomerReview, User } from 'src/entities/global.entity';
+import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class AgentsService {
     agentsRepository: Repository<Agent>;

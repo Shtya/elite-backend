@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { MessageTemplate, NotificationChannel } from 'entities/global.entity';
-import { CreateMessageTemplateDto, UpdateMessageTemplateDto } from '../../dto/message-templates.dto';
+import { MessageTemplate, NotificationChannel } from 'src/entities/global.entity';
+import { CreateMessageTemplateDto, UpdateMessageTemplateDto } from '../dto/message-templates.dto';
 export declare class MessageTemplatesService {
     readonly messageTemplatesRepository: Repository<MessageTemplate>;
     constructor(messageTemplatesRepository: Repository<MessageTemplate>);

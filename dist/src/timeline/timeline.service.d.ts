@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { CustomerTimelineEvent, User, Appointment } from 'entities/global.entity';
-import { CreateTimelineEventDto } from '../../dto/timeline.dto';
+import { CustomerTimelineEvent, User, Appointment } from 'src/entities/global.entity';
+import { CreateTimelineEventDto } from '../dto/timeline.dto';
 export declare class TimelineService {
     readonly timelineEventsRepository: Repository<CustomerTimelineEvent>;
     private usersRepository;

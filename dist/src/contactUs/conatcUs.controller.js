@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactUsController = void 0;
 const common_1 = require("@nestjs/common");
 const contactUs_service_1 = require("./contactUs.service");
-const users_dto_1 = require("../../dto/users.dto");
+const users_dto_1 = require("../dto/users.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const crud_service_1 = require("../../common/crud.service");
 let ContactUsController = class ContactUsController {
     constructor(contactUsService) {

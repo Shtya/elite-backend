@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { ContactUs } from 'entities/global.entity';
-import { CreateContactUsDto } from '../../dto/users.dto';
+import { ContactUs } from 'src/entities/global.entity';
+import { CreateContactUsDto } from '../dto/users.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class ContactUsService {
     readonly contactUsRepository: Repository<ContactUs>;

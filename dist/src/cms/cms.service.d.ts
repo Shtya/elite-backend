@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { StaticPage, PageSection, SiteSettings, FooterSettings, HomeBackground, PartnerLogo, FaqGroup, FaqItem, AboutFeature, AboutStep, AboutStat, AboutTeam, User, AboutHighlight } from 'entities/global.entity';
-import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutFeatureDto, CreateAboutStepDto, CreateAboutHighlightDto, CreateAboutStatDto, CreateAboutTeamDto } from '../../dto/cms.dto';
+import { StaticPage, PageSection, SiteSettings, FooterSettings, HomeBackground, PartnerLogo, FaqGroup, FaqItem, AboutFeature, AboutStep, AboutStat, AboutTeam, User, AboutHighlight } from 'src/entities/global.entity';
+import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutFeatureDto, CreateAboutStepDto, CreateAboutHighlightDto, CreateAboutStatDto, CreateAboutTeamDto } from '../dto/cms.dto';
 export declare class CmsService {
     readonly staticPagesRepository: Repository<StaticPage>;
     readonly pageSectionsRepository: Repository<PageSection>;

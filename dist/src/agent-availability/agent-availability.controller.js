@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AgentAvailabilityController = void 0;
 const common_1 = require("@nestjs/common");
 const agent_availability_service_1 = require("./agent-availability.service");
-const agent_availability_dto_1 = require("../../dto/agent-availability.dto");
+const agent_availability_dto_1 = require("../dto/agent-availability.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const crud_service_1 = require("../../common/crud.service");
 let AgentAvailabilityController = class AgentAvailabilityController {
     constructor(agentAvailabilityService) {

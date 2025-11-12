@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { CustomerReview, AgentReview, CustomerReviewDimension, AgentReviewDimension, Appointment, User } from 'entities/global.entity';
-import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto } from '../../dto/reviews.dto';
+import { CustomerReview, AgentReview, CustomerReviewDimension, AgentReviewDimension, Appointment, User } from 'src/entities/global.entity';
+import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto } from '../dto/reviews.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class ReviewsService {
     customerReviewRepository: Repository<CustomerReview>;

@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const timeline_service_1 = require("./timeline.service");
 const timeline_controller_1 = require("./timeline.controller");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let TimelineModule = class TimelineModule {
 };
 exports.TimelineModule = TimelineModule;

@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { AgentPayment, AgentBalance, Appointment, User } from 'entities/global.entity';
-import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../../dto/payments.dto';
+import { AgentPayment, AgentBalance, Appointment, User } from 'src/entities/global.entity';
+import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../dto/payments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class PaymentsService {
     readonly paymentsRepository: Repository<AgentPayment>;

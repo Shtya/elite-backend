@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
-import { Property, UserType, User } from 'entities/global.entity';
-import { CreateFavoriteDto, FavoriteQueryDto } from 'dto/favorites.dto';
-import { FavoriteProperty } from 'entities/global.entity';
+import { Property, UserType, User } from 'src/entities/global.entity';
+import { CreateFavoriteDto, FavoriteQueryDto } from 'src/dto/favorites.dto';
+import { FavoriteProperty } from 'src/entities/global.entity';
 export declare class FavoritesService {
     readonly favRepo: Repository<FavoriteProperty>;
     readonly propertyRepo: Repository<Property>;

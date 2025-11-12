@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { PropertyListingRequest, PropertyListingRequestAttachment, User, PropertyType } from 'entities/global.entity';
-import { CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto, AddAttachmentDto } from '../../dto/property-listing-requests.dto';
+import { PropertyListingRequest, PropertyListingRequestAttachment, User, PropertyType } from 'src/entities/global.entity';
+import { CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto, AddAttachmentDto } from '../dto/property-listing-requests.dto';
 export declare class PropertyListingRequestsService {
     propertyListingRequestsRepository: Repository<PropertyListingRequest>;
     private attachmentsRepository;

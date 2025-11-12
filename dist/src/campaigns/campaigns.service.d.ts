@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { Campaign, CampaignImage, User } from 'entities/global.entity';
-import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../../dto/campaigns.dto';
+import { Campaign, CampaignImage, User } from 'src/entities/global.entity';
+import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../dto/campaigns.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class CampaignsService {
     readonly campaignsRepository: Repository<Campaign>;

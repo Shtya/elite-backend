@@ -13,7 +13,7 @@ exports.ExportService = exports.moduleRepoMap = exports.ModuleName = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("typeorm");
 const ExcelJS = require("exceljs");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 var ModuleName;
 (function (ModuleName) {
     ModuleName["USER"] = "user";

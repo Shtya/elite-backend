@@ -10,7 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamMember = void 0;
-const global_entity_1 = require("../../../entities/global.entity");
+const global_entity_1 = require("../../entities/global.entity");
 const typeorm_1 = require("typeorm");
 let TeamMember = class TeamMember extends global_entity_1.CoreEntity {
 };

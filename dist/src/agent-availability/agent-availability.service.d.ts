@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { AgentAvailability, AgentPreferredProperty, User, Property } from 'entities/global.entity';
-import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto } from '../../dto/agent-availability.dto';
+import { AgentAvailability, AgentPreferredProperty, User, Property } from 'src/entities/global.entity';
+import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto } from '../dto/agent-availability.dto';
 export declare class AgentAvailabilityService {
     readonly agentAvailabilityRepository: Repository<AgentAvailability>;
     readonly preferredPropertyRepository: Repository<AgentPreferredProperty>;

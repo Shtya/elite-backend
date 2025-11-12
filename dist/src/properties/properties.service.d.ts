@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { Property, PropertyMedia, PropertyType, City, Area } from 'entities/global.entity';
-import { CreatePropertyDto, UpdatePropertyDto, PropertyMediaDto } from '../../dto/properties.dto';
+import { Property, PropertyMedia, PropertyType, City, Area } from 'src/entities/global.entity';
+import { CreatePropertyDto, UpdatePropertyDto, PropertyMediaDto } from '../dto/properties.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class PropertiesService {
     propertiesRepository: Repository<Property>;

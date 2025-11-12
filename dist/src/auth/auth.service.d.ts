@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
-import { User, AuthSession } from 'entities/global.entity';
-import { LoginDto, RegisterDto, VerifyOtpDto, ChangePasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../../dto/auth.dto';
+import { User, AuthSession } from 'src/entities/global.entity';
+import { LoginDto, RegisterDto, VerifyOtpDto, ChangePasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../dto/auth.dto';
 import { MailService } from 'common/nodemailer';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class AuthService {

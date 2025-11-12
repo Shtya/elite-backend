@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FavoritesModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const favorite_property_controller_1 = require("./favorite-property.controller");
 const favorite_property_service_1 = require("./favorite-property.service");
 let FavoritesModule = class FavoritesModule {

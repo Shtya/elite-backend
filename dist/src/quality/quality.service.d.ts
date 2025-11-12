@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { QualityCase, QualityCaseNote, User } from 'entities/global.entity';
-import { CreateQualityCaseDto, UpdateQualityCaseDto, AddCaseNoteDto } from '../../dto/quality.dto';
+import { QualityCase, QualityCaseNote, User } from 'src/entities/global.entity';
+import { CreateQualityCaseDto, UpdateQualityCaseDto, AddCaseNoteDto } from '../dto/quality.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class QualityService {
     readonly qualityCasesRepository: Repository<QualityCase>;

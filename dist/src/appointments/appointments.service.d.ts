@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { Appointment, AppointmentStatusHistory, User, Property } from 'entities/global.entity';
-import { CreateAppointmentDto, UpdateAppointmentDto, UpdateStatusDto } from '../../dto/appointments.dto';
+import { Appointment, AppointmentStatusHistory, User, Property } from 'src/entities/global.entity';
+import { CreateAppointmentDto, UpdateAppointmentDto, UpdateStatusDto } from '../dto/appointments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 export declare class AppointmentsService {
     appointmentsRepository: Repository<Appointment>;

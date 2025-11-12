@@ -2,10 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src",
-    "incremental": true,
-    "sourceMap": true,
-    "declaration": false
+    "rootDir": "./",
+    "module": "commonjs",
+    "declaration": false,
+    "sourceMap": true
   },
-  "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"]
+  "include": ["src/**/*", "decorators/**/*", "dto/**/*"]
 }

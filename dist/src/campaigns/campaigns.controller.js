@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CampaignsController = void 0;
 const common_1 = require("@nestjs/common");
 const campaigns_service_1 = require("./campaigns.service");
-const campaigns_dto_1 = require("../../dto/campaigns.dto");
+const campaigns_dto_1 = require("../dto/campaigns.dto");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const crud_service_1 = require("../../common/crud.service");
 let CampaignsController = class CampaignsController {
     constructor(campaignsService) {

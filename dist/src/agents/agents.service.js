@@ -16,7 +16,7 @@ exports.AgentsService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const notifications_service_1 = require("../notifications/notifications.service");
 let AgentsService = class AgentsService {
     constructor(agentsRepository, usersRepository, appointmentRepo, paymentRepo, reviewRepo, balanceRepo, notificationsService) {

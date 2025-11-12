@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
-import { City, Area, PropertyType } from "entities/global.entity";
-import { CreateCityDto, UpdateCityDto, CreateAreaDto, UpdateAreaDto, CreatePropertyTypeDto, UpdatePropertyTypeDto } from "../../dto/master-data.dto";
+import { City, Area, PropertyType } from "src/entities/global.entity";
+import { CreateCityDto, UpdateCityDto, CreateAreaDto, UpdateAreaDto, CreatePropertyTypeDto, UpdatePropertyTypeDto } from "../dto/master-data.dto";
 export declare class MasterDataService {
     readonly citiesRepository: Repository<City>;
     readonly areasRepository: Repository<Area>;

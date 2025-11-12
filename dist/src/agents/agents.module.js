@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const agents_service_1 = require("./agents.service");
 const agents_controller_1 = require("./agents.controller");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const notifications_module_1 = require("../notifications/notifications.module");
 let AgentsModule = class AgentsModule {
 };

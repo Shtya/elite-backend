@@ -1,6 +1,6 @@
 import { Repository } from 'typeorm';
-import { CalendarAccount, AppointmentCalendarSync, User, Appointment } from 'entities/global.entity';
-import { ConnectCalendarAccountDto, SyncAppointmentDto } from '../../dto/calendar.dto';
+import { CalendarAccount, AppointmentCalendarSync, User, Appointment } from 'src/entities/global.entity';
+import { ConnectCalendarAccountDto, SyncAppointmentDto } from '../dto/calendar.dto';
 export declare class CalendarService {
     readonly calendarAccountRepository: Repository<CalendarAccount>;
     readonly appointmentSyncRepository: Repository<AppointmentCalendarSync>;

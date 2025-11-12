@@ -1,7 +1,7 @@
 import { FavoritesService } from './favorite-property.service';
-import { UserType } from 'entities/global.entity';
-import { CreateFavoriteDto } from 'dto/favorites.dto';
-import { FavoriteProperty } from 'entities/global.entity';
+import { UserType } from 'src/entities/global.entity';
+import { CreateFavoriteDto } from 'src/dto/favorites.dto';
+import { FavoriteProperty } from 'src/entities/global.entity';
 type ReqUser = {
     user: {
         id: number;

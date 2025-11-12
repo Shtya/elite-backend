@@ -1,5 +1,5 @@
 import { Repository } from 'typeorm';
-import { User, Campaign, ReferralPartner, VisitorTracking, Conversion } from 'entities/global.entity';
+import { User, Campaign, ReferralPartner, VisitorTracking, Conversion } from 'src/entities/global.entity';
 type ConversionType = 'registration' | 'appointment';
 interface CreatePartnerDto {
     name: string;

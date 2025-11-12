@@ -18,7 +18,7 @@ const traffic_service_1 = require("./traffic.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let TrafficController = class TrafficController {
     constructor(service) {
         this.service = service;
@@ -123,8 +123,6 @@ __decorate([
 ], TrafficController.prototype, "track", null);
 __decorate([
     (0, common_1.Post)('conversions'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)(global_entity_1.UserType.ADMIN, global_entity_1.UserType.MARKETER),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),

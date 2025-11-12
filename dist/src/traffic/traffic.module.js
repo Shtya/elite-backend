@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const traffic_service_1 = require("./traffic.service");
 const traffic_controller_1 = require("./traffic.controller");
-const global_entity_1 = require("../../entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let TrafficModule = class TrafficModule {
 };
 exports.TrafficModule = TrafficModule;
