@@ -82,7 +82,6 @@ export class FavoritesController {
 
   /** Remove from favorites */
   @Delete(':propertyId')
-  @Roles(UserType.CUSTOMER, UserType.ADMIN)
   remove(@Req() req: ReqUser, @Param('propertyId', ParseIntPipe) propertyId: number, @Query('userId') userId?: number) {
     const asUserId = userId ? Number(userId) : undefined;
     return this.svc.remove(req.user, propertyId, asUserId);
