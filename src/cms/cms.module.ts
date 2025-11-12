@@ -6,7 +6,7 @@ import {
   StaticPage, PageSection, SiteSettings, FooterSettings, HomeBackground, 
   PartnerLogo, FaqGroup, FaqItem, AboutFeature, AboutStep, AboutStat, AboutTeam, 
 	AboutHighlight
-} from 'entities/global.entity';
+} from 'src/entities/global.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([

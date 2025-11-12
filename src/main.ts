@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import serverless from 'serverless-http';
 import { join } from 'path';
-import { QueryFailedErrorFilter } from 'common/QueryFailedErrorFilter';
+import { QueryFailedErrorFilter } from 'src/common/QueryFailedErrorFilter';
 
 let cachedApp: NestExpressApplication;
 

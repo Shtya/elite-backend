@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
-import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto, ReviewQueryDto } from '../../dto/reviews.dto';
+import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto, ReviewQueryDto } from '../dto/reviews.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'entities/global.entity';
-import { CRUD } from 'common/crud.service';
+import { UserType } from 'src/entities/global.entity';
+import { CRUD } from 'src/common/crud.service';
 
 @Controller('reviews')
 @UseGuards(JwtAuthGuard, RolesGuard)

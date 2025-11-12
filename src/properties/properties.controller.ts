@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
-import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto, PropertyMediaDto, CreateManyPropertyMediaDto } from '../../dto/properties.dto';
+import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto, PropertyMediaDto, CreateManyPropertyMediaDto } from '../dto/properties.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'entities/global.entity';
-import { CRUD } from 'common/crud.service';
+import { UserType } from 'src/entities/global.entity';
+import { CRUD } from 'src/common/crud.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { mixedUploadOptions } from './uplaod.config';
 

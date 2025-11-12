@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AgentAvailabilityService } from './agent-availability.service';
 import { AgentAvailabilityController } from './agent-availability.controller';
-import { AgentAvailability, AgentPreferredProperty, User, Property } from 'entities/global.entity';
+import { AgentAvailability, AgentPreferredProperty, User, Property } from 'src/entities/global.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([AgentAvailability, AgentPreferredProperty, User, Property])],

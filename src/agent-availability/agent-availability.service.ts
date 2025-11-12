@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentAvailability, AgentPreferredProperty, User, Property } from 'entities/global.entity';
-import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto, AgentAvailabilityQueryDto } from '../../dto/agent-availability.dto';
+import { AgentAvailability, AgentPreferredProperty, User, Property } from 'src/entities/global.entity';
+import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto, AgentAvailabilityQueryDto } from '../dto/agent-availability.dto';
 
 @Injectable()
 export class AgentAvailabilityService {

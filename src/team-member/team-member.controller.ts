@@ -2,7 +2,7 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseFilters, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
-import { imageUploadOptions, MulterExceptionFilter, toAbsPathImages, toWebPathImages, validateAndOptimizeImageIfPossible } from 'common/upload.config';
+import { imageUploadOptions, MulterExceptionFilter, toAbsPathImages, toWebPathImages, validateAndOptimizeImageIfPossible } from 'src/common/upload.config';
 
 import { TeamService } from './team-member.service';
 import { CreateTeamMemberDto } from './dto/create-team-member.dto';

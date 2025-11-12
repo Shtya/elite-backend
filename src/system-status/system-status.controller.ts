@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { UserType, VerificationStatus, AgentApprovalStatus, SocialPlatform, TrafficSource, AccessType, RelationshipType, ListingRequestStatus, AppointmentStatus, CreatedChannel, ConversionType, TimelineEventType, RatingDimension, PaymentStatus, PaymentGateway, CampaignChannel, CampaignAudience, CampaignRunType, CampaignFrequency, CampaignStatus, NotificationType, NotificationChannel, NotificationStatus, StaticPageSlug, SectionKey, CalendarProvider, QualityCaseStatus, QualityCasePriority, ReportSnapshotType } from 'entities/global.entity';
+import { UserType, VerificationStatus, AgentApprovalStatus, SocialPlatform, TrafficSource, AccessType, RelationshipType, ListingRequestStatus, AppointmentStatus, CreatedChannel, ConversionType, TimelineEventType, RatingDimension, PaymentStatus, PaymentGateway, CampaignChannel, CampaignAudience, CampaignRunType, CampaignFrequency, CampaignStatus, NotificationType, NotificationChannel, NotificationStatus, StaticPageSlug, SectionKey, CalendarProvider, QualityCaseStatus, QualityCasePriority, ReportSnapshotType } from 'src/entities/global.entity';
 
 @Controller('system')
 export class SystemStatusController {

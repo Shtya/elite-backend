@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { CmsService } from './cms.service';
-import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutTeamDto, CreateAboutStatDto, CreateAboutHighlightDto, CreateAboutStepDto, CreateAboutFeatureDto } from '../../dto/cms.dto';
+import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutTeamDto, CreateAboutStatDto, CreateAboutHighlightDto, CreateAboutStepDto, CreateAboutFeatureDto } from '../dto/cms.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'entities/global.entity';
-import { CRUD } from 'common/crud.service';
+import { UserType } from 'src/entities/global.entity';
+import { CRUD } from 'src/common/crud.service';
 
 @Controller('cms')
 export class CmsController {

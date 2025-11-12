@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../../dto/payments.dto';
+import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../dto/payments.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'entities/global.entity';
-import { CRUD } from 'common/crud.service';
+import { UserType } from 'src/entities/global.entity';
+import { CRUD } from 'src/common/crud.service';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard, RolesGuard)

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Property, PropertyMedia, PropertyType, City, Area, User, NotificationType, UserType, NotificationChannel } from 'entities/global.entity';
-import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto, PropertyMediaDto } from '../../dto/properties.dto';
+import { Property, PropertyMedia, PropertyType, City, Area, User, NotificationType, UserType, NotificationChannel } from 'src/entities/global.entity';
+import { CreatePropertyDto, UpdatePropertyDto, PropertyQueryDto, PropertyMediaDto } from '../dto/properties.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

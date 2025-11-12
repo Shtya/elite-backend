@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomerReview, AgentReview, CustomerReviewDimension, AgentReviewDimension, Appointment, User, RatingDimension, NotificationType, NotificationChannel, UserType } from 'entities/global.entity';
-import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto, ReviewQueryDto } from '../../dto/reviews.dto';
+import { CustomerReview, AgentReview, CustomerReviewDimension, AgentReviewDimension, Appointment, User, RatingDimension, NotificationType, NotificationChannel, UserType } from 'src/entities/global.entity';
+import { CreateCustomerReviewDto, CreateAgentReviewDto, UpdateReviewDto, ReviewQueryDto } from '../dto/reviews.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CalendarAccount, AppointmentCalendarSync, User, Appointment, CalendarProvider } from 'entities/global.entity';
-import { ConnectCalendarAccountDto, SyncAppointmentDto, CalendarQueryDto } from '../../dto/calendar.dto';
+import { CalendarAccount, AppointmentCalendarSync, User, Appointment, CalendarProvider } from 'src/entities/global.entity';
+import { ConnectCalendarAccountDto, SyncAppointmentDto, CalendarQueryDto } from '../dto/calendar.dto';
 
 @Injectable()
 export class CalendarService {

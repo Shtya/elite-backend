@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { City, Area, PropertyType } from "entities/global.entity";
+import { City, Area, PropertyType } from "src/entities/global.entity";
 import {
   CreateCityDto,
   UpdateCityDto,
@@ -14,7 +14,7 @@ import {
   CreatePropertyTypeDto,
   UpdatePropertyTypeDto,
   MasterDataQueryDto,
-} from "../../dto/master-data.dto";
+} from "../dto/master-data.dto";
 
 @Injectable()
 export class MasterDataService {

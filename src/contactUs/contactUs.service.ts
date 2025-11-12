@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ContactUs, NotificationType, NotificationChannel, UserType } from 'entities/global.entity';
-import { CreateContactUsDto } from '../../dto/users.dto';
+import { ContactUs, NotificationType, NotificationChannel, UserType } from 'src/entities/global.entity';
+import { CreateContactUsDto } from '../dto/users.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CustomerTimelineEvent, User, TimelineEventType, Appointment } from 'entities/global.entity';
-import { CreateTimelineEventDto, TimelineQueryDto } from '../../dto/timeline.dto';
+import { CustomerTimelineEvent, User, TimelineEventType, Appointment } from 'src/entities/global.entity';
+import { CreateTimelineEventDto, TimelineQueryDto } from '../dto/timeline.dto';
 
 @Injectable()
 export class TimelineService {

@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StaticPage, PageSection, SiteSettings, FooterSettings, HomeBackground, PartnerLogo, FaqGroup, FaqItem, AboutFeature, AboutStep, AboutStat, AboutTeam, StaticPageSlug, User, AboutHighlight } from 'entities/global.entity';
-import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutFeatureDto, CreateAboutStepDto, CreateAboutHighlightDto, CreateAboutStatDto, CreateAboutTeamDto } from '../../dto/cms.dto';
+import { StaticPage, PageSection, SiteSettings, FooterSettings, HomeBackground, PartnerLogo, FaqGroup, FaqItem, AboutFeature, AboutStep, AboutStat, AboutTeam, StaticPageSlug, User, AboutHighlight } from 'src/entities/global.entity';
+import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdatePageSectionDto, UpdateSiteSettingsDto, UpdateFooterSettingsDto, CreateHomeBackgroundDto, CreatePartnerLogoDto, CreateFaqItemDto, CreateFaqGroupDto, UpdateFaqGroupDto, CreateAboutFeatureDto, CreateAboutStepDto, CreateAboutHighlightDto, CreateAboutStatDto, CreateAboutTeamDto } from '../dto/cms.dto';
 
 @Injectable()
 export class CmsService {

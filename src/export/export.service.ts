@@ -92,7 +92,7 @@ import {
 
   // Reports
   ReportSnapshot,
-} from 'entities/global.entity';
+} from 'src/entities/global.entity';
 
 export enum ModuleName {
   USER = 'user',

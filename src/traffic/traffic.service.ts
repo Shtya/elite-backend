@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike, Between, MoreThanOrEqual, LessThanOrEqual, FindOptionsWhere } from 'typeorm';
-import { User, Campaign, ReferralPartner, VisitorTracking, Conversion } from 'entities/global.entity';
+import { User, Campaign, ReferralPartner, VisitorTracking, Conversion } from 'src/entities/global.entity';
 type ConversionType = 'registration' | 'appointment';
 
 interface CreatePartnerDto {

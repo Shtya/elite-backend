@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentPayment, AgentBalance, Appointment, User, PaymentStatus, PaymentGateway, NotificationType, NotificationChannel, UserType } from 'entities/global.entity';
-import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../../dto/payments.dto';
+import { AgentPayment, AgentBalance, Appointment, User, PaymentStatus, PaymentGateway, NotificationType, NotificationChannel, UserType } from 'src/entities/global.entity';
+import { CreatePaymentDto, UpdatePaymentDto, ProcessPaymentDto, PaymentQueryDto } from '../dto/payments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { MessageTemplate, NotificationChannel } from 'entities/global.entity';
-import { CreateMessageTemplateDto, UpdateMessageTemplateDto, MessageTemplateQueryDto } from '../../dto/message-templates.dto';
+import { MessageTemplate, NotificationChannel } from 'src/entities/global.entity';
+import { CreateMessageTemplateDto, UpdateMessageTemplateDto, MessageTemplateQueryDto } from '../dto/message-templates.dto';
 
 @Injectable()
 export class MessageTemplatesService {

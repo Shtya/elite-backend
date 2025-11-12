@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
-import { AgentPayment, AgentBalance, Appointment, User } from 'entities/global.entity';
+import { AgentPayment, AgentBalance, Appointment, User } from 'src/entities/global.entity';
 import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({

@@ -14,19 +14,19 @@ import {
   Req,
 } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { imageUploadOptions } from "common/upload.config";
+import { imageUploadOptions } from "src/common/upload.config";
 
 import { AgentsService } from "./agents.service";
 import {
   CreateAgentDto,
   UpdateAgentDto,
   ApproveAgentDto,
-} from "../../dto/agents.dto";
+} from "../dto/agents.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
-import { UserType } from "entities/global.entity";
-import { CRUD } from "common/crud.service";
+import { UserType } from "src/entities/global.entity";
+import { CRUD } from "src/common/crud.service";
 interface RequestWithUser extends Request {
   user: any;
 }

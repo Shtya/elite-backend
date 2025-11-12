@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsEnum, IsOptional, IsString, IsNumber, IsDateString, IsBoolean } from 'class-validator';
-import { TrafficSource, ConversionType, SocialPlatform } from 'entities/global.entity';
+import { TrafficSource, ConversionType, SocialPlatform } from 'src/entities/global.entity';
 
 export class TrackVisitorDto {
   @IsOptional()
