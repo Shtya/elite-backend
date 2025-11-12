@@ -20,6 +20,15 @@ export function toWebPathImages(filename: string) {
 export function toAbsPathImages(filename: string) {
   return join(IMAGES_DIR_ABS, filename);
 }
+export const GENERIC_DIR_ABS = join(UPLOADS_ROOT_ABS, 'files');
+export const GENERIC_SERVE_ROOT = '/uploads/files';
+
+export function toWebPathFiles(filename: string) {
+  return `${GENERIC_SERVE_ROOT}/${filename}`;
+}
+export function toAbsPathFiles(filename: string) {
+  return join(GENERIC_DIR_ABS, filename);
+}
 
 /* ===================== Optional: per-route validator ===================== */
 export function imageOptionalPipe(maxBytes = IMAGE_MAX_BYTES) {
@@ -149,4 +158,26 @@ export const videoUploadOptions = {
     cb(new Error('Unsupported video type'), false);
   },
   limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
+};
+export const genericUploadOptions = {
+  storage: diskStorage({
+    destination: (req, file, cb) => {
+      ensureDir(GENERIC_DIR_ABS);
+      cb(null, GENERIC_DIR_ABS);
+    },
+    filename: (req, file, cb) => cb(null, randomName(file.originalname, file.originalname)),
+  }),
+  fileFilter: (req: Express.Request, file: Express.Multer.File, cb: Function) => {
+    // Accept images, PDF, and Word documents
+    const allowedTypes = [
+      /^image\/(jpeg|png|jpg|gif|webp|svg\+xml)$/, // images
+      /^application\/pdf$/,                         // PDF
+      /^application\/msword$/,                      // .doc
+      /^application\/vnd\.openxmlformats-officedocument\.wordprocessingml\.document$/, // .docx
+    ];
+
+    if (allowedTypes.some((regex) => regex.test(file.mimetype))) return cb(null, true);
+    cb(new Error('Unsupported file type'), false);
+  },
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
 };

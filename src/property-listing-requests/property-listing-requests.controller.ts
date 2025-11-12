@@ -14,7 +14,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
-import { imageUploadOptions, toWebPathImages } from 'common/upload.config';
+import { genericUploadOptions, toWebPathFiles } from 'common/upload.config';
 
 interface RequestWithUser extends Request {
   user: any;
@@ -32,7 +32,7 @@ export class PropertyListingRequestsController {
       { name: 'ownershipDoc', maxCount: 1 },
       { name: 'attachments', maxCount: 10 },
     ],
-    imageUploadOptions )
+    genericUploadOptions )
   )
   async create(
     @UploadedFiles() files: { 
@@ -48,16 +48,15 @@ export class PropertyListingRequestsController {
     }
   
     createDto.ownerId = Number(req.user.id);
-    console.log(files)
     // Save single files to main table
     if (files.authorizationDoc?.[0]) {
-      createDto.authorizationDocUrl = toWebPathImages(files.authorizationDoc[0].filename);
+      createDto.authorizationDocUrl = toWebPathFiles(files.authorizationDoc[0].filename);
     }
     if (files.ownershipDoc?.[0]) {
-      createDto.ownershipDocUrl = toWebPathImages(files.ownershipDoc[0].filename);
+      createDto.ownershipDocUrl = toWebPathFiles(files.ownershipDoc[0].filename);
     }
     if (files.attachments?.length) {
-      createDto.attachments = files.attachments.map(f => toWebPathImages(f.filename));
+      createDto.attachments = files.attachments.map(f => toWebPathFiles(f.filename));
     }
     // Pass uploaded attachments files to the service
     const attachmentsFiles = files.attachments ?? [];
@@ -108,7 +107,7 @@ export class PropertyListingRequestsController {
         { name: 'ownershipDoc', maxCount: 1 },
         { name: 'attachments', maxCount: 10 },
       ],
-      imageUploadOptions
+      genericUploadOptions
     )
   )
   async update(
@@ -122,13 +121,13 @@ export class PropertyListingRequestsController {
   ) {
     // Map uploaded files to URLs
     if (files.authorizationDoc?.[0]) {
-      updateDto.authorizationDocUrl = toWebPathImages(files.authorizationDoc[0].filename);
+      updateDto.authorizationDocUrl = toWebPathFiles(files.authorizationDoc[0].filename);
     }
     if (files.ownershipDoc?.[0]) {
-      updateDto.ownershipDocUrl = toWebPathImages(files.ownershipDoc[0].filename);
+      updateDto.ownershipDocUrl = toWebPathFiles(files.ownershipDoc[0].filename);
     }
     if (files.attachments?.length) {
-      updateDto.attachments = files.attachments.map(f => toWebPathImages(f.filename));
+      updateDto.attachments = files.attachments.map(f => toWebPathFiles(f.filename));
     }
   
     return this.propertyListingRequestsService.update(+id, updateDto);
