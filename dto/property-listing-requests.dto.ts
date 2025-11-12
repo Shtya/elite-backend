@@ -5,12 +5,12 @@ import { Type, Transform } from 'class-transformer';
 export class CreatePropertyListingRequestDto {
   @IsOptional()
   @IsNumber()
-  @Type(() => Number) // <-- transform string to number
+  @Type(() => Number) 
   ownerId?: number;
 
   @IsNotEmpty()
   @IsEnum(RelationshipType)
-  @Transform(({ value }) => value.toLowerCase()) // ensure enum matches
+  @Transform(({ value }) => value.toLowerCase()) 
   relationshipType: RelationshipType;
 
   @IsNotEmpty()
