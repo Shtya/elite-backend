@@ -4,7 +4,7 @@ export declare class MessageTemplatesController {
     private readonly messageTemplatesService;
     constructor(messageTemplatesService: MessageTemplatesService);
     create(createMessageTemplateDto: CreateMessageTemplateDto): Promise<import("src/entities/global.entity").MessageTemplate>;
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").MessageTemplate>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").MessageTemplate>>;
     findOne(id: string): Promise<import("src/entities/global.entity").MessageTemplate>;
     update(id: string, updateMessageTemplateDto: UpdateMessageTemplateDto): Promise<import("src/entities/global.entity").MessageTemplate>;
     remove(id: string): Promise<void>;

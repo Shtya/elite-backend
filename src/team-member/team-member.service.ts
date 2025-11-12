@@ -7,7 +7,7 @@ import { unlinkSync } from 'fs';
 import { TeamMember } from './entities/team-member.entity';
 import { CreateTeamMemberDto } from './dto/create-team-member.dto';
 import { UpdateTeamMemberDto } from './dto/update-team-member.dto';
-import { toAbsPathImages } from 'src/common/upload.config';
+import { toAbsPathImages } from 'common/upload.config';
 
 type UploadCtx = { uploadedFilename?: string };
 

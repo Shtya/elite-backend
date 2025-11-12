@@ -6,10 +6,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserType } from 'src/entities/global.entity';
-import { CRUD } from 'src/common/crud.service';
+import { CRUD } from 'common/crud.service';
 
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { imageUploadOptions } from 'src/common/upload.config'; // or your consolidated upload.ts
+import { imageUploadOptions } from 'common/upload.config'; // or your consolidated upload.ts
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Res, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ExportService, ModuleName } from './export.service';
-import { CRUD } from 'src/common/crud.service';
+import { CRUD } from 'common/crud.service';
 import { ExportRowsDto } from './export.dto';
 
 @Controller('export')

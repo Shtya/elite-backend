@@ -4,7 +4,7 @@ export declare class ReportsController {
     private readonly reportsService;
     constructor(reportsService: ReportsService);
     generateReport(generateReportDto: GenerateReportDto): Promise<import("src/entities/global.entity").ReportSnapshot>;
-    getReportSnapshots(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").ReportSnapshot>>;
+    getReportSnapshots(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").ReportSnapshot>>;
     getReportSnapshot(id: string): Promise<import("src/entities/global.entity").ReportSnapshot>;
     getAdminDashboard(): Promise<any>;
     getAgentPerformance(query: AgentPerformanceQueryDto): Promise<any>;

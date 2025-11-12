@@ -4,7 +4,7 @@ export declare class CampaignsController {
     private readonly campaignsService;
     constructor(campaignsService: CampaignsService);
     create(createCampaignDto: CreateCampaignDto, req: any): Promise<import("src/entities/global.entity").Campaign>;
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Campaign>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Campaign>>;
     findOne(id: string): Promise<import("src/entities/global.entity").Campaign>;
     update(id: string, updateCampaignDto: UpdateCampaignDto): Promise<import("src/entities/global.entity").Campaign>;
     remove(id: string): Promise<void>;

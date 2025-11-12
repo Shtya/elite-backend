@@ -1,29 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import serverless from 'serverless-http';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { join } from 'path';
-import { QueryFailedErrorFilter } from './common/QueryFailedErrorFilter';
-
-let cachedServer: any;
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { QueryFailedErrorFilter } from 'common/QueryFailedErrorFilter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(app.get(QueryFailedErrorFilter));
+  app.useStaticAssets(join(__dirname, '..', '..', '/uploads'), { prefix: '/uploads/' });
 
-  // Serve static files (for uploads)
-  app.useStaticAssets(join(__dirname, 'uploads'), { prefix: '/uploads/' });
+  app.enableCors({});
 
-  await app.init();
-  return serverless(app.getHttpAdapter().getInstance());
+  app.useGlobalPipes(new ValidationPipe({ disableErrorMessages: false, transform: true, forbidNonWhitelisted: true, whitelist: true }));
+
+  Logger.log(`🚀 server is running on port ${process.env.PORT || 3030}`);
+  await app.listen(process.env.PORT || 3030);
 }
-
-export const handler = async (event: any, context: any) => {
-  if (!cachedServer) {
-    cachedServer = await bootstrap();
-  }
-  return cachedServer(event, context);
-};
+bootstrap();

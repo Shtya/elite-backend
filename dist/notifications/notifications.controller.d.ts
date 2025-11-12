@@ -4,7 +4,7 @@ export declare class NotificationsController {
     private readonly notificationsService;
     constructor(notificationsService: NotificationsService);
     create(createNotificationDto: CreateNotificationDto): Promise<import("src/entities/global.entity").Notification>;
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Notification>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Notification>>;
     getMyNotifications(query: any, req: any): Promise<{
         total_records: number;
         current_page: number;

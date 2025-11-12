@@ -9,10 +9,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactUsModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const global_entity_1 = require("src/entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 const conatcUs_controller_1 = require("./conatcUs.controller");
 const contactUs_service_1 = require("./contactUs.service");
-const notifications_module_1 = require("src/notifications/notifications.module");
+const notifications_module_1 = require("../notifications/notifications.module");
 let ContactUsModule = class ContactUsModule {
 };
 exports.ContactUsModule = ContactUsModule;

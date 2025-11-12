@@ -18,8 +18,8 @@ const favorite_property_service_1 = require("./favorite-property.service");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("src/entities/global.entity");
-const favorites_dto_1 = require("src/dto/favorites.dto");
+const global_entity_1 = require("../entities/global.entity");
+const favorites_dto_1 = require("../dto/favorites.dto");
 let FavoritesController = class FavoritesController {
     constructor(svc) {
         this.svc = svc;

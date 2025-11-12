@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const master_data_service_1 = require("./master-data.service");
 const master_data_controller_1 = require("./master-data.controller");
-const global_entity_1 = require("src/entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let MasterDataModule = class MasterDataModule {
 };
 exports.MasterDataModule = MasterDataModule;

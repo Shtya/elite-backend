@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { QueryFailedErrorFilter } from 'src/common/QueryFailedErrorFilter';
+import { QueryFailedErrorFilter } from 'common/QueryFailedErrorFilter';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { AgentsModule } from './agents/agents.module';

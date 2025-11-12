@@ -8,7 +8,7 @@ export declare class UsersController {
         nationalIdUrl?: Express.Multer.File[];
         residencyIdUrl?: Express.Multer.File[];
     }): Promise<import("src/entities/global.entity").User>;
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").User>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").User>>;
     findOne(id: string): Promise<import("src/entities/global.entity").User>;
     update(id: string, updateUserDto: UpdateUserDto, files?: {
         profilePhotoUrl?: Express.Multer.File[];

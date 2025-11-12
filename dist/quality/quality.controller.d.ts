@@ -4,7 +4,7 @@ export declare class QualityController {
     private readonly qualityService;
     constructor(qualityService: QualityService);
     createCase(createQualityCaseDto: CreateQualityCaseDto): Promise<import("src/entities/global.entity").QualityCase>;
-    findAllCases(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").QualityCase>>;
+    findAllCases(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").QualityCase>>;
     findCase(id: string): Promise<import("src/entities/global.entity").QualityCase>;
     updateCase(id: string, updateQualityCaseDto: UpdateQualityCaseDto): Promise<import("src/entities/global.entity").QualityCase>;
     addCaseNote(id: string, addCaseNoteDto: AddCaseNoteDto): Promise<import("src/entities/global.entity").QualityCaseNote>;

@@ -3,8 +3,8 @@ import { CreateStaticPageDto, UpdateStaticPageDto, CreatePageSectionDto, UpdateP
 export declare class CmsController {
     private readonly cmsService;
     constructor(cmsService: CmsService);
-    getAllPages(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").StaticPage>>;
-    listSections(pageId: string, query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PageSection>>;
+    getAllPages(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").StaticPage>>;
+    listSections(pageId: string, query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PageSection>>;
     getPageBySlug(slug: string): Promise<import("src/entities/global.entity").StaticPage>;
     createPage(createStaticPageDto: CreateStaticPageDto): Promise<import("src/entities/global.entity").StaticPage>;
     updatePage(id: string, updateStaticPageDto: UpdateStaticPageDto): Promise<import("src/entities/global.entity").StaticPage>;
@@ -14,12 +14,12 @@ export declare class CmsController {
     updateSiteSettings(dto: UpdateSiteSettingsDto): Promise<import("src/entities/global.entity").SiteSettings>;
     getFooterSettings(): Promise<import("src/entities/global.entity").FooterSettings>;
     updateFooterSettings(updateFooterSettingsDto: UpdateFooterSettingsDto): Promise<import("src/entities/global.entity").FooterSettings>;
-    getHomeBackgrounds(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").HomeBackground>>;
+    getHomeBackgrounds(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").HomeBackground>>;
     createHomeBackground(createHomeBackgroundDto: CreateHomeBackgroundDto): Promise<import("src/entities/global.entity").HomeBackground>;
     deleteHomeBackground(id: number): Promise<{
         message: string;
     }>;
-    getPartnerLogos(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PartnerLogo>>;
+    getPartnerLogos(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PartnerLogo>>;
     createPartnerLogo(createPartnerLogoDto: CreatePartnerLogoDto): Promise<import("src/entities/global.entity").PartnerLogo>;
     deletePartnerLogo(id: number): Promise<{
         message: string;
@@ -29,7 +29,7 @@ export declare class CmsController {
     deleteFaqGroup(id: number): Promise<{
         message: string;
     }>;
-    getFaqGroups(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").FaqGroup>>;
+    getFaqGroups(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").FaqGroup>>;
     createFaqItem(createFaqItemDto: CreateFaqItemDto): Promise<import("src/entities/global.entity").FaqItem>;
     deleteFaqItem(id: number): Promise<{
         message: string;
@@ -42,20 +42,20 @@ export declare class CmsController {
     deleteAboutHighlight(id: number): Promise<{
         message: string;
     }>;
-    getAboutHighlights(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutHighlight>>;
-    getAboutFeatures(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutFeature>>;
+    getAboutHighlights(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutHighlight>>;
+    getAboutFeatures(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutFeature>>;
     deleteAboutFeature(id: number): Promise<{
         message: string;
     }>;
-    getAboutSteps(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutStep>>;
+    getAboutSteps(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutStep>>;
     deleteAboutStep(id: number): Promise<{
         message: string;
     }>;
-    getAboutStats(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutStat>>;
+    getAboutStats(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutStat>>;
     deleteAboutStat(id: number): Promise<{
         message: string;
     }>;
-    getAboutTeam(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutTeam>>;
+    getAboutTeam(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AboutTeam>>;
     deleteAboutTeam(id: number): Promise<{
         message: string;
     }>;

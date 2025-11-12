@@ -18,7 +18,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const fs_1 = require("fs");
 const team_member_entity_1 = require("./entities/team-member.entity");
-const upload_config_1 = require("../common/upload.config");
+const upload_config_1 = require("../../common/upload.config");
 let TeamService = class TeamService {
     constructor(repo) {
         this.repo = repo;

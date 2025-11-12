@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const agent_availability_service_1 = require("./agent-availability.service");
 const agent_availability_controller_1 = require("./agent-availability.controller");
-const global_entity_1 = require("src/entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let AgentAvailabilityModule = class AgentAvailabilityModule {
 };
 exports.AgentAvailabilityModule = AgentAvailabilityModule;

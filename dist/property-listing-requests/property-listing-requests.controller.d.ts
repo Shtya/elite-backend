@@ -11,7 +11,7 @@ export declare class PropertyListingRequestsController {
         ownershipDoc?: Express.Multer.File[];
         attachments?: Express.Multer.File[];
     }, createDto: CreatePropertyListingRequestDto, req: RequestWithUser): Promise<import("src/entities/global.entity").PropertyListingRequest>;
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PropertyListingRequest>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PropertyListingRequest>>;
     findOne(id: string): Promise<import("src/entities/global.entity").PropertyListingRequest>;
     update(id: string, files: {
         authorizationDoc?: Express.Multer.File[];

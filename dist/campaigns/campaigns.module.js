@@ -11,8 +11,8 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const campaigns_service_1 = require("./campaigns.service");
 const campaigns_controller_1 = require("./campaigns.controller");
-const global_entity_1 = require("src/entities/global.entity");
-const notifications_module_1 = require("src/notifications/notifications.module");
+const global_entity_1 = require("../entities/global.entity");
+const notifications_module_1 = require("../notifications/notifications.module");
 let CampaignsModule = class CampaignsModule {
 };
 exports.CampaignsModule = CampaignsModule;

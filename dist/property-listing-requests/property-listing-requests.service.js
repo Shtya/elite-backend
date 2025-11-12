@@ -16,8 +16,8 @@ exports.PropertyListingRequestsService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const global_entity_1 = require("src/entities/global.entity");
-const upload_config_1 = require("src/common/upload.config");
+const global_entity_1 = require("../entities/global.entity");
+const upload_config_1 = require("../../common/upload.config");
 let PropertyListingRequestsService = class PropertyListingRequestsService {
     constructor(propertyListingRequestsRepository, attachmentsRepository, usersRepository, propertyTypesRepository) {
         this.propertyListingRequestsRepository = propertyListingRequestsRepository;

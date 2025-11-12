@@ -17,10 +17,10 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const global_entity_1 = require("src/entities/global.entity");
-const nodemailer_1 = require("src/common/nodemailer");
+const global_entity_1 = require("../entities/global.entity");
+const nodemailer_1 = require("../../common/nodemailer");
 const bcrypt = require("bcryptjs");
-const notifications_service_1 = require("src/notifications/notifications.service");
+const notifications_service_1 = require("../notifications/notifications.service");
 let AuthService = class AuthService {
     constructor(usersRepository, authSessionRepository, jwtService, mailService, notificationsService) {
         this.usersRepository = usersRepository;

@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TeamController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
-const upload_config_1 = require("../common/upload.config");
+const upload_config_1 = require("../../common/upload.config");
 const team_member_service_1 = require("./team-member.service");
 let TeamController = class TeamController {
     constructor(svc) {

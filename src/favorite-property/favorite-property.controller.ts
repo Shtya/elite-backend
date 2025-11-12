@@ -6,7 +6,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserType } from 'src/entities/global.entity';
 import { CreateFavoriteDto, FavoriteQueryDto } from 'src/dto/favorites.dto';
 import { FavoriteProperty } from 'src/entities/global.entity';
-import { CRUD } from 'src/common/crud.service';
+import { CRUD } from 'common/crud.service';
 
 type ReqUser = { user: { id: number; userType: UserType } };
 

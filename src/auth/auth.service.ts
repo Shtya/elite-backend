@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, AuthSession, VerificationStatus, NotificationType, NotificationChannel, UserType } from 'src/entities/global.entity';
 import { LoginDto, RegisterDto, VerifyOtpDto, ChangePasswordDto, ResetPasswordDto, UpdateProfileDto, EmailLoginDto, VerifyEmailOtpDto } from '../dto/auth.dto';
-import { MailService } from 'src/common/nodemailer';
+import { MailService } from 'common/nodemailer';
 import * as bcrypt from 'bcryptjs';
 import { NotificationsService } from 'src/notifications/notifications.service';
 

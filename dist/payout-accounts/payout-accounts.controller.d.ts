@@ -3,7 +3,7 @@ import { CreatePayoutAccountDto, UpdatePayoutAccountDto } from '../dto/payout-ac
 export declare class PayoutAccountsController {
     private readonly payoutAccountsService;
     constructor(payoutAccountsService: PayoutAccountsService);
-    findAll(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AgentPayoutAccount>>;
+    findAll(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").AgentPayoutAccount>>;
     create(createPayoutAccountDto: CreatePayoutAccountDto): Promise<import("src/entities/global.entity").AgentPayoutAccount>;
     findByAgent(agentId: string): Promise<import("src/entities/global.entity").AgentPayoutAccount>;
     findOne(id: string): Promise<import("src/entities/global.entity").AgentPayoutAccount>;

@@ -14,7 +14,7 @@ import {
   Req,
 } from "@nestjs/common";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
-import { imageUploadOptions } from "src/common/upload.config";
+import { imageUploadOptions } from "common/upload.config";
 
 import { AgentsService } from "./agents.service";
 import {
@@ -26,7 +26,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { UserType } from "src/entities/global.entity";
-import { CRUD } from "src/common/crud.service";
+import { CRUD } from "common/crud.service";
 interface RequestWithUser extends Request {
   user: any;
 }

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PropertyListingRequest, PropertyListingRequestAttachment, User, PropertyType, ListingRequestStatus, RelationshipType } from 'src/entities/global.entity';
 import { CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto, PropertyListingRequestQueryDto, AddAttachmentDto } from '../dto/property-listing-requests.dto';
-import { toWebPathFiles } from 'src/common/upload.config';
+import { toWebPathFiles } from 'common/upload.config';
 
 @Injectable()
 export class PropertyListingRequestsService {

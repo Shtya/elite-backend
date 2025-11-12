@@ -11,7 +11,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const message_templates_service_1 = require("./message-templates.service");
 const message_templates_controller_1 = require("./message-templates.controller");
-const global_entity_1 = require("src/entities/global.entity");
+const global_entity_1 = require("../entities/global.entity");
 let MessageTemplatesModule = class MessageTemplatesModule {
 };
 exports.MessageTemplatesModule = MessageTemplatesModule;

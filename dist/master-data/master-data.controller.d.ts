@@ -3,16 +3,16 @@ import { CreateCityDto, UpdateCityDto, CreateAreaDto, UpdateAreaDto, CreatePrope
 export declare class MasterDataController {
     private readonly masterDataService;
     constructor(masterDataService: MasterDataService);
-    getCities(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").City>>;
+    getCities(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").City>>;
     getCity(id: string): Promise<import("src/entities/global.entity").City>;
     createCity(createCityDto: CreateCityDto): Promise<import("src/entities/global.entity").City>;
     updateCity(id: string, updateCityDto: UpdateCityDto): Promise<import("src/entities/global.entity").City>;
-    getAreas(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Area>>;
-    getAreasByCity(cityId: string, query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Area>>;
+    getAreas(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Area>>;
+    getAreasByCity(cityId: string, query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").Area>>;
     getArea(id: string): Promise<import("src/entities/global.entity").Area>;
     createArea(createAreaDto: CreateAreaDto): Promise<import("src/entities/global.entity").Area>;
     updateArea(id: string, updateAreaDto: UpdateAreaDto): Promise<import("src/entities/global.entity").Area>;
-    getPropertyTypes(query: any): Promise<import("src/common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PropertyType>>;
+    getPropertyTypes(query: any): Promise<import("common/crud.service").CustomPaginatedResponse<import("src/entities/global.entity").PropertyType>>;
     getPropertyType(id: string): Promise<import("src/entities/global.entity").PropertyType>;
     createPropertyType(createPropertyTypeDto: CreatePropertyTypeDto): Promise<import("src/entities/global.entity").PropertyType>;
     updatePropertyType(id: string, updatePropertyTypeDto: UpdatePropertyTypeDto): Promise<import("src/entities/global.entity").PropertyType>;

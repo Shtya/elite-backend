@@ -20,9 +20,9 @@ const property_listing_requests_dto_1 = require("../dto/property-listing-request
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../auth/guards/roles.guard");
 const roles_decorator_1 = require("../auth/decorators/roles.decorator");
-const global_entity_1 = require("src/entities/global.entity");
-const crud_service_1 = require("src/common/crud.service");
-const upload_config_1 = require("src/common/upload.config");
+const global_entity_1 = require("../entities/global.entity");
+const crud_service_1 = require("../../common/crud.service");
+const upload_config_1 = require("../../common/upload.config");
 let PropertyListingRequestsController = class PropertyListingRequestsController {
     constructor(propertyListingRequestsService) {
         this.propertyListingRequestsService = propertyListingRequestsService;

@@ -1,4 +1,4 @@
-import { TrafficSource, ConversionType, SocialPlatform } from 'entities/global.entity';
+import { TrafficSource, ConversionType, SocialPlatform } from 'src/entities/global.entity';
 export declare class TrackVisitorDto {
     referralCode?: string;
     marketerId?: number;
