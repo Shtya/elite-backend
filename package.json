@@ -8,8 +8,8 @@
   "scripts": {
     "seed": "ts-node -r tsconfig-paths/register src/seeder.run.ts",
     "build": "tsc -p tsconfig.build.json",
-"start:prod": "node -r tsconfig-paths/register dist/src/main.js"  ,
-  "start:dev": "nest start --watch",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
     "nodemon": "nodemon --ext json,yaml --exec npm run start",
     "start:debug": "nest start --debug --watch",
     "vercel-build": "npm run build",
