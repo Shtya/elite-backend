@@ -55,6 +55,17 @@ export class CreatePropertyListingRequestDto {
 }
 
 export class UpdatePropertyListingRequestDto {
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  propertyTypeId?: number;
+  
+  @IsOptional()
+    @IsEnum(RelationshipType)
+  @Transform(({ value }) => value.toLowerCase()) // ensure enum matches
+  relationshipType?: RelationshipType;
+
   @IsOptional()
   @IsEnum(ListingRequestStatus)
   status?: ListingRequestStatus;
@@ -65,6 +76,16 @@ export class UpdatePropertyListingRequestDto {
 
   @IsOptional()
   @IsObject()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return {}; // fallback
+      }
+    }
+    return value;
+  })
   specifications?: Record<string, any>;
 
   @IsOptional()
