@@ -1,1 +1,1 @@
-export declare const handler: (event: any, context: any) => Promise<Object>;
+export declare const handler: (event: any, context: any) => Promise<any>;

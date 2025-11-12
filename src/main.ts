@@ -4,28 +4,26 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import serverless from 'serverless-http';
 import { join } from 'path';
-import { QueryFailedErrorFilter } from 'src/common/QueryFailedErrorFilter';
+import { QueryFailedErrorFilter } from './common/QueryFailedErrorFilter';
 
-let cachedApp: NestExpressApplication;
+let cachedServer: any;
 
 async function bootstrap() {
-  if (cachedApp) return cachedApp;
-
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(app.get(QueryFailedErrorFilter));
 
-  // Serve static files from uploads
+  // Serve static files (for uploads)
   app.useStaticAssets(join(__dirname, 'uploads'), { prefix: '/uploads/' });
 
   await app.init();
-  cachedApp = app;
-  return app;
+  return serverless(app.getHttpAdapter().getInstance());
 }
 
 export const handler = async (event: any, context: any) => {
-  const app = await bootstrap();
-  const server = serverless(app.getHttpAdapter().getInstance());
-  return server(event, context);
+  if (!cachedServer) {
+    cachedServer = await bootstrap();
+  }
+  return cachedServer(event, context);
 };
