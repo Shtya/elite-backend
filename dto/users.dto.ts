@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsBoolean, IsNumber, IsEmail, MinLength } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional, IsString, IsBoolean, IsNumber, IsEmail, MinLength, MaxLength } from 'class-validator';
 import { UserType, VerificationStatus } from '../entities/global.entity';
 
 export class CreateUserDto {
@@ -98,4 +98,15 @@ export class UserQueryDto {
   @IsOptional()
   @IsNumber()
   limit?: number;
+}
+export class CreateContactUsDto {
+  @IsNotEmpty()
+name: string;
+
+@IsEmail()
+@MaxLength(255)
+email: string;
+
+@IsNotEmpty()
+message: string;
 }

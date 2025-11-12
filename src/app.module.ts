@@ -28,7 +28,7 @@ import { SystemModule } from './system-status/system-status.module';
 import { FavoritesModule } from './favorite-property/favorite-property.module';
 import { ExportModule } from './export/export.module';
 import { TeamModule } from './team-member/team-member.module';
-
+import { ContactUsModule } from './contactUs/contactUs.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -73,7 +73,8 @@ import { TeamModule } from './team-member/team-member.module';
     SystemModule,
     FavoritesModule,
 		ExportModule,
-		TeamModule
+		TeamModule,
+    ContactUsModule
   ],
   providers: [
 		QueryFailedErrorFilter , 

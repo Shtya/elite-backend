@@ -1437,3 +1437,16 @@ export class ReportSnapshot extends CoreEntity {
   @Column({ name: 'generated_at', type: 'timestamptz', default: () => 'NOW()' })
   generatedAt: Date;
 }
+
+
+@Entity('contact_us')
+export class ContactUs extends CoreEntity {
+  @Column({ type: 'varchar', length: 255 })
+  name: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  email: string;
+
+  @Column({ type: 'text' })
+  message: string;
+}
