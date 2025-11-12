@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ReportSnapshot, ReportSnapshotType, Appointment, AgentPayment, User, Conversion, VisitorTracking } from 'entities/global.entity';
+import { ReportSnapshot, ReportSnapshotType, Appointment, AgentPayment, User, Conversion, VisitorTracking, PropertyListingRequest, Property } from 'entities/global.entity';
 import { GenerateReportDto, ReportQueryDto, AgentPerformanceQueryDto, MarketingPerformanceQueryDto } from '../../dto/reports.dto';
 
 @Injectable()
@@ -19,6 +19,9 @@ export class ReportsService {
     private conversionsRepository: Repository<Conversion>,
     @InjectRepository(VisitorTracking)
     private visitorTrackingRepository: Repository<VisitorTracking>,
+    @InjectRepository(Property)
+    private propertyRepository: Repository<Property>,
+
   ) {}
 
   async generateReport(generateReportDto: GenerateReportDto): Promise<ReportSnapshot> {
@@ -144,14 +147,14 @@ export class ReportsService {
       totalProperties,
       totalRevenue,
       visitorStats,
-    ]:any = await Promise.all([
+    ]: any = await Promise.all([
       this.usersRepository.count({ where: { createdAt: Between(start, end) } }),
-      this.usersRepository.count({ where: { userType: 'agent', createdAt: Between(start, end) } }as any),
+      this.usersRepository.count({ where: { userType: 'agent', createdAt: Between(start, end) } } as any),
       this.appointmentsRepository.count({ where: { createdAt: Between(start, end) } }),
-      this.appointmentsRepository.count({ where: { status: 'completed', createdAt: Between(start, end) } }as any),
-      // Add other counts as needed
+      this.appointmentsRepository.count({ where: { status: 'completed', createdAt: Between(start, end) } } as any),
+      this.propertyRepository.count({ where: {  createdAt: Between(start, end) } }),
       this.getTotalRevenue(start, end),
-      this.getVisitorStats(start, end) ,
+      this.getVisitorStats(start, end),
     ]);
 
     return {

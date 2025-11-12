@@ -82,7 +82,8 @@ export class TrafficController {
 
   // -------- Conversions (Admin/Marketer) --------
   @Post('conversions')
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.ADMIN, UserType.MARKETER)
   createConversion(@Body() body: any, @Req() req: Request) {
     // body: { userId, type: 'registration'|'appointment', visitorId?, referralCode?, campaignId? }
     const headerRef = (req.headers['x-ref'] as string) || undefined;

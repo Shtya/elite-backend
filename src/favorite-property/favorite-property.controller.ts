@@ -15,7 +15,6 @@ export class FavoritesController {
   constructor(private readonly svc: FavoritesService) {}
 
   @Get()
-  @Roles(UserType.CUSTOMER, UserType.ADMIN, UserType.QUALITY)
   findAll(@Query() query: any) {
     return CRUD.findAll(
       this.svc.favRepo, // repo
