@@ -10,6 +10,7 @@ import {
   Query,
   UseGuards,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { TrafficService } from './traffic.service';
@@ -91,12 +92,20 @@ export class TrafficController {
   // -------- Conversions (Admin/Marketer) --------
   @Post('conversions')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  createConversion(@Body() body: any, @Req() req: Request) {
+  createConversion(@Body() body: any, @Req() req: any) {
     // body: { userId, type: 'registration'|'appointment', visitorId?, referralCode?, campaignId? }
     const headerRef = (req.headers['x-ref'] as string) || undefined;
+    const userId = req.user?.id;
+    if (!userId) {
+      throw new UnauthorizedException('Missing user context');
+    }
+  
     return this.service.createConversion({
       ...body,
       referralCode: body.referralCode ?? headerRef,
-    });
+    },
+    userId
+  );
+
   }
 }

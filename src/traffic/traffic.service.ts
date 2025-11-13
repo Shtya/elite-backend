@@ -356,11 +356,11 @@ export class TrafficService {
   }
 
   // ============ Conversions ============
-  async createConversion(dto: CreateConversionDto) {
-    if (!dto.userId) throw new BadRequestException("userId is required");
+  async createConversion(dto: CreateConversionDto,userId: number) {
+    if (!userId) throw new BadRequestException("userId is required");
     if (!dto.type) throw new BadRequestException("type is required");
 
-    const user = await this.userRepo.findOne({ where: { id: dto.userId } });
+    const user = await this.userRepo.findOne({ where: { id: userId } });
     if (user) throw new NotFoundException("User not found");
 
     let visit: VisitorTracking | null = null;
