@@ -299,7 +299,8 @@ export class User extends CoreEntity {
     nullable: true,
   })
   profilePhotoUrl?: string | null;
-
+@OneToMany(() => ReferralPartner, (partner) => partner.user)
+referralPartners: ReferralPartner[];
   // WhatsApp OTP
   @Column({
     name: "whatsapp_otp",
@@ -646,6 +647,9 @@ export class ReferralPartner extends CoreEntity {
   @ManyToOne(() => Campaign, { eager: true, nullable: true })
   @JoinColumn({ name: "campaign_id" })
   campaign: Campaign;
+  @ManyToOne(() => User, (user) => user.referralPartners, { eager: true, nullable: true })
+  @JoinColumn({ name: "user_id" })
+  user: User;
 
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;

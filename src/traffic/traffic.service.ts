@@ -190,44 +190,52 @@ export class TrafficService {
 
   async createPartnerAndShareUrl(body: CreatePartnerDto) {
     const existUser = await this.userRepo.findOne({
-      where: { email: body.email }
+      where: { email: body.email },
     });
-    
+  
     if (existUser) {
       throw new ConflictException("User with this email already exists");
     }
-
-
+  
+    // Generate referral code
     const referralCode = await this.uniqueReferralCode();
-
-    const partner =  this.partnerRepo.create({
-      name: body.name,
-      platform: body.platform ?? null, // ← مفيش default من الحملة، خليه من البودي
-      referralCode,
-      isActive: true,
-    });
+  
+    // Hash password
     const passwordHash = await bcrypt.hash(body.passwordHash, 12);
-
+  
+    // 1️⃣ Create and save user first
     const user = this.userRepo.create({
       fullName: body.name,
       email: body.email,
       passwordHash,
-      verificationStatus: VerificationStatus.VERIFIED, // Admin-created users can be considered verified
+      verificationStatus: VerificationStatus.VERIFIED,
       verifiedAt: new Date(),
       isActive: true,
-      userType:UserType.MARKETER
+      userType: UserType.MARKETER,
     });
-    const saved = await this.partnerRepo.save(partner);
-
-// Generate and save the share URL
-const shareUrl = this.buildShareUrlInternal(saved, {
-  baseShareUrl: body.baseShareUrl,
-});
-saved.shareUrl = shareUrl;
-await this.partnerRepo.save(saved);
-
-return { partner: saved, shareUrl };
+    const savedUser = await this.userRepo.save(user);
+  
+    // 2️⃣ Create partner and associate user
+    const partner = this.partnerRepo.create({
+      name: body.name,
+      platform: body.platform ?? null,
+      referralCode,
+      isActive: true,
+      user: savedUser, // ✅ link directly here
+    });
+  
+    const savedPartner = await this.partnerRepo.save(partner);
+  
+    // 3️⃣ Generate and persist share URL
+    const shareUrl = this.buildShareUrlInternal(savedPartner, {
+      baseShareUrl: body.baseShareUrl,
+    });
+    savedPartner.shareUrl = shareUrl;
+    await this.partnerRepo.save(savedPartner);
+  
+    return { partner: savedPartner, shareUrl };
   }
+  
 
   async buildShareUrlForPartner(partnerId: number, body: BuildShareUrlDto) {
     const partner = await this.ensurePartner(partnerId);
@@ -261,8 +269,9 @@ return { partner: saved, shareUrl };
     return { page, limit, total, items };
   }
   async getpartnersbyId(id: number) {
+
     const partner = await this.partnerRepo.find({
-      where: { id },
+      where: { user: { id } },  
       relations: ["campaign",],
       order: { createdAt: "DESC" },
      
