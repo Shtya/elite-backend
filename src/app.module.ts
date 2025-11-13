@@ -41,6 +41,9 @@ import { ContactUsModule } from "./contactUs/contactUs.module";
       database: process.env.DATABASE_NAME,
       entities: [__dirname + "/../**/*.entity{.ts,.js}"], // Adjusted path
       synchronize: true,
+      extra:{
+        max: 10, 
+      }
     }),
 
     // JwtModule.register({

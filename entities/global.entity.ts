@@ -275,7 +275,7 @@ export enum ReportSnapshotType {
 @Index("UQ_users_email", ["email"], { unique: true })
 @Entity("users")
 export class User extends CoreEntity {
-  @Column({ name: "phone_number", type: "varchar", length: 20, unique: true })
+  @Column({ name: "phone_number", type: "varchar", length: 20, unique: true ,nullable: true})
   phoneNumber: string;
 
   @Column({ type: "varchar", length: 255, unique: true })

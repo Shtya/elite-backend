@@ -189,24 +189,18 @@ export class TrafficService {
   // ... داخل TrafficService
 
   async createPartnerAndShareUrl(body: CreatePartnerDto) {
-
-
-
-    // uniqueness على (campaign, name, kind)
-    const exist = await this.partnerRepo.findOne({
-      where: {
-        user: { email: body.email },
-     
-      } as any,
+    const existUser = await this.userRepo.findOne({
+      where: { email: body.email }
     });
-    if (exist)
-      throw new ConflictException(
-        "Partner with same (campaign, name, kind) already exists"
-      );
+    
+    if (existUser) {
+      throw new ConflictException("User with this email already exists");
+    }
+
 
     const referralCode = await this.uniqueReferralCode();
 
-    const partner = this.partnerRepo.create({
+    const partner =  this.partnerRepo.create({
       name: body.name,
       platform: body.platform ?? null, // ← مفيش default من الحملة، خليه من البودي
       referralCode,
@@ -224,7 +218,7 @@ export class TrafficService {
       userType:UserType.MARKETER
     });
     const saved = await this.partnerRepo.save(partner);
-
+    await this.userRepo.save(user);
     // سيب الـUTM للـbuilder يتولد من (platform/targetChannel + campaign.name)
     const shareUrl = this.buildShareUrlInternal(saved,  {
       baseShareUrl: body.baseShareUrl,
@@ -359,7 +353,7 @@ export class TrafficService {
     if (!dto.type) throw new BadRequestException("type is required");
 
     const user = await this.userRepo.findOne({ where: { id: dto.userId } });
-    if (!user) throw new NotFoundException("User not found");
+    if (user) throw new NotFoundException("User not found");
 
     let visit: VisitorTracking | null = null;
 
