@@ -381,7 +381,7 @@ export class City extends CoreEntity {
 }
 
 @Entity("agents")
-@Unique("UQ_agents_user", ["user"])
+// @Unique("UQ_agents_user", ["user"])
 export class Agent extends CoreEntity {
   @OneToOne(() => User, { eager: true })
   @JoinColumn({ name: "user_id" })
