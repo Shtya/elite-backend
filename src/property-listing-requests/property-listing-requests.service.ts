@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { PropertyListingRequest, PropertyListingRequestAttachment, User, PropertyType, ListingRequestStatus, RelationshipType } from 'entities/global.entity';
 import { CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto, PropertyListingRequestQueryDto, AddAttachmentDto } from '../../dto/property-listing-requests.dto';
 import { toWebPathFiles } from 'common/upload.config';
+import { MessageTemplatesService } from 'src/message-templates/message-templates.service';
+import { MailService } from 'common/nodemailer';
 
 @Injectable()
 export class PropertyListingRequestsService {
@@ -16,6 +18,8 @@ export class PropertyListingRequestsService {
     private usersRepository: Repository<User>,
     @InjectRepository(PropertyType)
     private propertyTypesRepository: Repository<PropertyType>,
+    private mailService: MailService,
+    
   ) {}
   async create(dto: CreatePropertyListingRequestDto, attachmentsFiles: Express.Multer.File[] = []): Promise<PropertyListingRequest> {
     const owner = await this.usersRepository.findOne({ where: { id: dto.ownerId } });
@@ -112,30 +116,85 @@ export class PropertyListingRequestsService {
 
     return this.attachmentsRepository.save(attachment);
   }
-
   async approve(id: number): Promise<PropertyListingRequest> {
     const request = await this.findOne(id);
     request.status = ListingRequestStatus.INSPECTED;
-    return this.propertyListingRequestsRepository.save(request);
+  
+    const savedRequest = await this.propertyListingRequestsRepository.save(request);
+  
+    // ✉️ Generate and send approval email
+    const htmlContent = this.mailService.generateApprovalTemplate(request.owner.email, 'approved', {
+      userName: request.owner.fullName,
+      propertyTitle:  'Your Property',
+      requestId: request.id,
+    });
+  
+    await this.mailService.transporter.sendMail({
+      to: request.owner.email,
+      subject: 'Your Property Listing Has Been Approved',
+      html: htmlContent,
+    });
+  
+    return savedRequest;
   }
-
+  
   async reject(id: number, reason: string): Promise<PropertyListingRequest> {
     const request = await this.findOne(id);
     request.status = ListingRequestStatus.REJECTED;
-    // You might want to store the rejection reason
-    return this.propertyListingRequestsRepository.save(request);
+  
+    const savedRequest = await this.propertyListingRequestsRepository.save(request);
+  
+    // ✉️ Generate and send rejection email
+    const htmlContent = this.mailService.generateRejectionTemplate(
+      request.owner.email,
+      'rejected',
+      {
+        userName: request.owner.fullName,
+        propertyTitle:  'Your Property',
+        requestId: request.id,
+      },
+      {
+        userName: request.owner.fullName,
+        propertyTitle: 'Your Property',
+        reason,
+        requestId: request.id,
+      },
+    );
+  
+    await this.mailService.transporter.sendMail({
+      to: request.owner.email,
+      subject: 'Your Property Listing Has Been Rejected',
+      html: htmlContent,
+    });
+  
+    return savedRequest;
   }
-
+  
   async publish(id: number): Promise<PropertyListingRequest> {
     const request = await this.findOne(id);
     request.status = ListingRequestStatus.PUBLISHED;
-
-    // Here you would create an actual property from the request
+  
+    // Create the actual property
     await this.createPropertyFromRequest(request);
-
-    return this.propertyListingRequestsRepository.save(request);
+  
+    const savedRequest = await this.propertyListingRequestsRepository.save(request);
+  
+    // ✉️ Generate and send publish email
+    const htmlContent = this.mailService.generatePublishTemplate({
+      userName: request.owner.fullName,
+      propertyTitle: 'Your Property',
+      propertyUrl: `${process.env.FRONTEND_URL}/property/${request.id}`,
+    });
+  
+    await this.mailService.transporter.sendMail({
+      to: request.owner.email,
+      subject: 'Your Property Is Now Live!',
+      html: htmlContent,
+    });
+  
+    return savedRequest;
   }
-
+  
   async findByOwner(ownerId: number): Promise<PropertyListingRequest[]> {
     return this.propertyListingRequestsRepository.find({
       where: { owner: { id: ownerId } },

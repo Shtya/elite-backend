@@ -3,7 +3,7 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private transporter = nodemailer.createTransport({
+  public transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
       user: process.env.EMAIL_USER,
@@ -316,7 +316,217 @@ export class MailService {
     </html>
     `;
   }
-
+  generateApprovalTemplate(email: string, p0: string, data: { userName: string; propertyTitle: string; requestId: number; }) {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Listing Request Approved</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f9f9f9;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .container {
+          background: white;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          border: 1px solid #e0e0e0;
+        }
+        .header {
+          text-align: center;
+          background: linear-gradient(135deg, #1e328b, #2c5aa0);
+          color: white;
+          padding: 20px;
+          border-radius: 10px 10px 0 0;
+          margin: -30px -30px 30px -30px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e0e0e0;
+          color: #666;
+          font-size: 14px;
+        }
+        .button {
+          display: inline-block;
+          background: #1e328b;
+          color: white;
+          padding: 12px 25px;
+          border-radius: 5px;
+          text-decoration: none;
+          margin: 20px 0;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🏠 Listing Approved</h1>
+        </div>
+        <p>Dear <strong>${data.userName}</strong>,</p>
+        <p>Good news! Your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:green;font-weight:bold;">approved</span> after inspection.</p>
+        <p>You can now proceed to publish your property or review the details on your dashboard.</p>
+        <div style="text-align:center;">
+          <a href="${process.env.FRONTEND_URL}/dashboard/listings/${data.requestId}" class="button">View Listing</a>
+        </div>
+        <div class="footer">
+          <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
+          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+  }
+  generateRejectionTemplate(email: string, p0: string, p1: { userName: string; propertyTitle: any; requestId: number; }, data: { userName: string; propertyTitle: string; reason: string; requestId: number; }) {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Listing Request Rejected</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f9f9f9;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .container {
+          background: white;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          border: 1px solid #e0e0e0;
+        }
+        .header {
+          text-align: center;
+          background: linear-gradient(135deg, #a83232, #c94b4b);
+          color: white;
+          padding: 20px;
+          border-radius: 10px 10px 0 0;
+          margin: -30px -30px 30px -30px;
+        }
+        .reason {
+          background: #fff3f3;
+          border-left: 4px solid #c94b4b;
+          padding: 15px;
+          border-radius: 8px;
+          margin: 20px 0;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e0e0e0;
+          color: #666;
+          font-size: 14px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>❌ Listing Request Rejected</h1>
+        </div>
+        <p>Dear <strong>${data.userName}</strong>,</p>
+        <p>We regret to inform you that your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:red;font-weight:bold;">rejected</span>.</p>
+        <div class="reason">
+          <strong>Reason:</strong><br>${data.reason}
+        </div>
+        <p>You may review your submission and make the necessary corrections before resubmitting.</p>
+        <div class="footer">
+          <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
+          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+  }
+  generatePublishTemplate(data: { userName: string; propertyTitle: string; propertyUrl: string }) {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Listing Published</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f9f9f9;
+          color: #333;
+          max-width: 600px;
+          margin: 0 auto;
+          padding: 20px;
+        }
+        .container {
+          background: white;
+          border-radius: 10px;
+          padding: 30px;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          border: 1px solid #e0e0e0;
+        }
+        .header {
+          text-align: center;
+          background: linear-gradient(135deg, #1e8b42, #2ca04e);
+          color: white;
+          padding: 20px;
+          border-radius: 10px 10px 0 0;
+          margin: -30px -30px 30px -30px;
+        }
+        .footer {
+          text-align: center;
+          margin-top: 30px;
+          padding-top: 20px;
+          border-top: 1px solid #e0e0e0;
+          color: #666;
+          font-size: 14px;
+        }
+        .button {
+          display: inline-block;
+          background: #1e8b42;
+          color: white;
+          padding: 12px 25px;
+          border-radius: 5px;
+          text-decoration: none;
+          margin: 20px 0;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>✅ Listing Published Successfully</h1>
+        </div>
+        <p>Dear <strong>${data.userName}</strong>,</p>
+        <p>Congratulations! Your property <strong>${data.propertyTitle}</strong> has been successfully <span style="color:green;font-weight:bold;">published</span> on our platform.</p>
+        <p>Your listing is now live and visible to potential buyers and renters.</p>
+        <div style="text-align:center;">
+          <a href="${data.propertyUrl}" class="button">View Property</a>
+        </div>
+        <div class="footer">
+          <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
+          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+  }
+  
   async testConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();
@@ -327,4 +537,6 @@ export class MailService {
       return false;
     }
   }
+
+
 }

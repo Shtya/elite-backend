@@ -1,16 +1,39 @@
-import { Injectable, BadRequestException, NotFoundException, ConflictException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, ILike, Between, MoreThanOrEqual, LessThanOrEqual, FindOptionsWhere } from 'typeorm';
-import { User, Campaign, ReferralPartner, VisitorTracking, Conversion } from 'entities/global.entity';
-type ConversionType = 'registration' | 'appointment';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+} from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import {
+  Repository,
+  ILike,
+  Between,
+  MoreThanOrEqual,
+  LessThanOrEqual,
+  FindOptionsWhere,
+} from "typeorm";
+import {
+  User,
+  Campaign,
+  ReferralPartner,
+  VisitorTracking,
+  Conversion,
+  VerificationStatus,
+  UserType,
+} from "entities/global.entity";
+import * as bcrypt from "bcryptjs";
+type ConversionType = "registration" | "appointment";
 
 interface CreatePartnerDto {
   name: string;
-  kind?: 'external' | 'internal';
+  kind?: "external" | "internal";
   platform?: string;
   campaignId: number; // Required
   baseShareUrl?: string; // e.g. https://site.com/landing
   utm?: { utm_source?: string; utm_campaign?: string; utm_content?: string };
+  email: string;
+  passwordHash: string;
 }
 
 interface BuildShareUrlDto {
@@ -50,96 +73,113 @@ export class TrafficService {
     @InjectRepository(Conversion)
     private readonly convRepo: Repository<Conversion>,
     @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
+    private readonly userRepo: Repository<User>
   ) {}
 
   // ============ Helpers ============
   private async ensureCampaign(id: number): Promise<Campaign> {
     const c = await this.campaignRepo.findOne({ where: { id } });
-    if (!c) throw new NotFoundException('Campaign not found');
+    if (!c) throw new NotFoundException("Campaign not found");
     return c;
   }
 
   private async ensurePartner(id: number): Promise<ReferralPartner> {
-    const p = await this.partnerRepo.findOne({ where: { id }, relations: ['campaign'] });
-    if (!p) throw new NotFoundException('Partner not found');
+    const p = await this.partnerRepo.findOne({
+      where: { id },
+      relations: ["campaign"],
+    });
+    if (!p) throw new NotFoundException("Partner not found");
     return p;
   }
 
   private generateReferralCode(len = 6): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // بدون المتشابهات
-    let out = '';
-    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // بدون المتشابهات
+    let out = "";
+    for (let i = 0; i < len; i++)
+      out += chars[Math.floor(Math.random() * chars.length)];
     return out;
   }
 
   private async uniqueReferralCode(): Promise<string> {
     for (let i = 0; i < 5; i++) {
       const code = this.generateReferralCode(6);
-      const exists = await this.partnerRepo.findOne({ where: { referralCode: code } });
+      const exists = await this.partnerRepo.findOne({
+        where: { referralCode: code },
+      });
       if (!exists) return code;
     }
-    throw new ConflictException('Failed to generate unique referral code');
+    throw new ConflictException("Failed to generate unique referral code");
   }
 
   private buildShareUrlBase(campaign: Campaign, baseShareUrl?: string): URL {
-  const DEFAULT_ORIGIN = process.env.APP_PUBLIC_ORIGIN || 'https://your-frontend.com';
-  const base = baseShareUrl || `${DEFAULT_ORIGIN}/landing`;
-  try {
-    return new URL(base); // absolute
-  } catch {
-    return new URL(base, DEFAULT_ORIGIN); // relative → prefix origin
+    const DEFAULT_ORIGIN =
+      process.env.APP_PUBLIC_ORIGIN || "https://your-frontend.com";
+    const base = baseShareUrl || `${DEFAULT_ORIGIN}/landing`;
+    try {
+      return new URL(base); // absolute
+    } catch {
+      return new URL(base, DEFAULT_ORIGIN); // relative → prefix origin
+    }
   }
-}
 
-
-  private buildShareUrlQuery(u: URL, params: Record<string, string | number | undefined | null>) {
+  private buildShareUrlQuery(
+    u: URL,
+    params: Record<string, string | number | undefined | null>
+  ) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v === undefined || v === null || v === '') return;
+      if (v === undefined || v === null || v === "") return;
       u.searchParams.set(k, String(v));
     });
   }
 
-	private toSlug(input?: string | null): string | undefined {
-  if (!input) return undefined;
-  return input
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/gi, '-')
-    .replace(/(^-|-$)/g, '');
-}
-
-
+  private toSlug(input?: string | null): string | undefined {
+    if (!input) return undefined;
+    return input
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/gi, "-")
+      .replace(/(^-|-$)/g, "");
+  }
   private buildShareUrlInternal(
-  partner: ReferralPartner,
-  campaign: Campaign,
-  opts?: { baseShareUrl?: string; utm?: Record<string, string | undefined> }
-) {
-  const u = this.buildShareUrlBase(campaign, opts?.baseShareUrl);
-
-  const utmSource =
-    opts?.utm?.utm_source ||
-    partner.platform ||                       // ← الأفضل لو متسجّل
-    (campaign as any).targetChannel ||        // ← عندك في الكائن فعليًا
-    'direct';
-
-  const utmCampaign =
-    opts?.utm?.utm_campaign ||
-    this.toSlug((campaign as any).name || (campaign as any).title); // ← موجودين في الكائن
-
-  this.buildShareUrlQuery(u, {
-    ref: partner.referralCode,
-    campaignId: campaign.id,
-    utm_source: utmSource,
-    utm_campaign: utmCampaign,
-    utm_content: opts?.utm?.utm_content || undefined,
-  });
-
-  return u.toString();
-}
-
-
+    partner: ReferralPartner,
+    campaignOrOpts?: Campaign | { baseShareUrl?: string; utm?: Record<string, string | undefined> },
+    maybeOpts?: { baseShareUrl?: string; utm?: Record<string, string | undefined> }
+  ) {
+    let campaign: Campaign | undefined;
+    let opts: { baseShareUrl?: string; utm?: Record<string, string | undefined> } | undefined;
+  
+    if (campaignOrOpts && 'id' in campaignOrOpts) {
+      campaign = campaignOrOpts as Campaign;
+      opts = maybeOpts;
+    } else {
+      campaign = undefined;
+      opts = campaignOrOpts as any;
+    }
+  
+    const u = this.buildShareUrlBase(campaign, opts?.baseShareUrl);
+  
+    const utmSource =
+      opts?.utm?.utm_source ||
+      partner.platform ||
+      (campaign as any)?.targetChannel ||
+      "direct";
+  
+    const utmCampaign =
+      opts?.utm?.utm_campaign ||
+      (campaign ? this.toSlug((campaign as any)?.name || (campaign as any)?.title) : "general");
+  
+    this.buildShareUrlQuery(u, {
+      ref: partner.referralCode,
+      campaignId: campaign?.id,
+      utm_source: utmSource,
+      utm_campaign: utmCampaign,
+      utm_content: opts?.utm?.utm_content,
+    });
+  
+    return u.toString();
+  }
+  
   private getAttributionWindowDays(campaign: Campaign): number {
     const n = Number((campaign as any).attributionWindowDays ?? 60);
     return Number.isFinite(n) && n > 0 ? n : 60;
@@ -149,40 +189,56 @@ export class TrafficService {
   // ... داخل TrafficService
 
   async createPartnerAndShareUrl(body: CreatePartnerDto) {
-  if (!body.campaignId) throw new BadRequestException('campaignId is required');
 
-  const campaign = await this.ensureCampaign(body.campaignId);
 
-  // uniqueness على (campaign, name, kind)
-  const exist = await this.partnerRepo.findOne({
-    where: { campaign: { id: campaign.id }, name: body.name, kind: (body.kind ?? 'external') as any } as any,
-  });
-  if (exist) throw new ConflictException('Partner with same (campaign, name, kind) already exists');
 
-  const referralCode = await this.uniqueReferralCode();
+    // uniqueness على (campaign, name, kind)
+    const exist = await this.partnerRepo.findOne({
+      where: {
+        user: { email: body.email },
+     
+      } as any,
+    });
+    if (exist)
+      throw new ConflictException(
+        "Partner with same (campaign, name, kind) already exists"
+      );
 
-  const partner = this.partnerRepo.create({
-    name: body.name,
-    kind: body.kind ?? 'external',
-    platform: body.platform ?? null, // ← مفيش default من الحملة، خليه من البودي
-    referralCode,
-    isActive: true,
-    campaign,
-  });
-  const saved = await this.partnerRepo.save(partner);
+    const referralCode = await this.uniqueReferralCode();
 
-  // سيب الـUTM للـbuilder يتولد من (platform/targetChannel + campaign.name)
-  const shareUrl = this.buildShareUrlInternal(saved, campaign, {
-    baseShareUrl: body.baseShareUrl,
-  });
+    const partner = this.partnerRepo.create({
+      name: body.name,
+      platform: body.platform ?? null, // ← مفيش default من الحملة، خليه من البودي
+      referralCode,
+      isActive: true,
+    });
+    const passwordHash = await bcrypt.hash(body.passwordHash, 12);
 
-  return { partner: saved, shareUrl };
-}
+    const user = this.userRepo.create({
+      fullName: body.name,
+      email: body.email,
+      passwordHash,
+      verificationStatus: VerificationStatus.VERIFIED, // Admin-created users can be considered verified
+      verifiedAt: new Date(),
+      isActive: true,
+      userType:UserType.MARKETER
+    });
+    const saved = await this.partnerRepo.save(partner);
 
+    // سيب الـUTM للـbuilder يتولد من (platform/targetChannel + campaign.name)
+    const shareUrl = this.buildShareUrlInternal(saved,  {
+      baseShareUrl: body.baseShareUrl,
+    });
+    
+
+    return { partner: saved, shareUrl };
+  }
 
   async buildShareUrlForPartner(partnerId: number, body: BuildShareUrlDto) {
     const partner = await this.ensurePartner(partnerId);
-    const campaign = await this.ensureCampaign((partner.campaign as any).id || partner.campaign);
+    const campaign = await this.ensureCampaign(
+      (partner.campaign as any).id || partner.campaign
+    );
     const shareUrl = this.buildShareUrlInternal(partner, campaign, {
       baseShareUrl: body.baseShareUrl,
       utm: body.utm,
@@ -196,32 +252,47 @@ export class TrafficService {
     const limit = Math.min(100, Math.max(1, Number(q.limit) || 20));
     const where: FindOptionsWhere<ReferralPartner> = {};
     if (q.q) (where as any).name = ILike(`%${q.q}%`);
-    if (typeof q.isActive !== 'undefined') (where as any).isActive = String(q.isActive) === 'true';
+    if (typeof q.isActive !== "undefined")
+      (where as any).isActive = String(q.isActive) === "true";
     if (q.campaignId) (where as any).campaign = { id: Number(q.campaignId) };
 
     const [items, total] = await this.partnerRepo.findAndCount({
       where,
-      relations: ['campaign'],
-      order: { createdAt: 'DESC' },
+      relations: ["campaign"],
+      order: { createdAt: "DESC" },
       skip: (page - 1) * limit,
       take: limit,
     });
     return { page, limit, total, items };
   }
-
+  async getpartnersbyId(id: number) {
+  
+    const partner = await this.partnerRepo.find({
+      where: { id },
+      relations: ["campaign"],
+      order: { createdAt: "DESC" },
+     
+    });
+    return { partner };
+  }
   async updatePartner(id: number, body: Partial<CreatePartnerDto>) {
     const partner = await this.ensurePartner(id);
     if (body.campaignId && body.campaignId !== (partner.campaign as any).id) {
       const camp = await this.ensureCampaign(body.campaignId);
       (partner as any).campaign = camp;
     }
-    if (typeof body.name === 'string') partner.name = body.name;
+    if (typeof body.name === "string") partner.name = body.name;
     if (body.kind) partner.kind = body.kind;
-    if (typeof body.platform !== 'undefined') partner.platform = body.platform || null;
+    if (typeof body.platform !== "undefined")
+      partner.platform = body.platform || null;
     const saved = await this.partnerRepo.save(partner);
 
     // اختياري: رجّع Share URL افتراضي سريع
-    const shareUrl = this.buildShareUrlInternal(saved, (partner as any).campaign, {});
+    const shareUrl = this.buildShareUrlInternal(
+      saved,
+      (partner as any).campaign,
+      {}
+    );
     return { partner: saved, shareUrl };
   }
 
@@ -232,59 +303,72 @@ export class TrafficService {
   }
 
   async trackVisitor(dto: TrackVisitorDto) {
-  if (!dto.referralCode) throw new BadRequestException('referralCode is required');
-  if (!dto.campaignId) throw new BadRequestException('campaignId is required');
+    if (!dto.referralCode)
+      throw new BadRequestException("referralCode is required");
+    if (!dto.campaignId)
+      throw new BadRequestException("campaignId is required");
 
-  const campaign = await this.ensureCampaign(dto.campaignId);
+    const campaign = await this.ensureCampaign(dto.campaignId);
 
-  const partner = await this.partnerRepo.findOne({
-    where: { referralCode: dto.referralCode, isActive: true },
-    relations: ['campaign'],
-  });
-  if (!partner) throw new NotFoundException('Partner (by referralCode) not found or inactive');
+    const partner = await this.partnerRepo.findOne({
+      where: { referralCode: dto.referralCode, isActive: true },
+      relations: ["campaign"],
+    });
+    if (!partner)
+      throw new NotFoundException(
+        "Partner (by referralCode) not found or inactive"
+      );
 
-  const partnerCampaignId = (partner.campaign as any).id || partner.campaign;
-  if (partnerCampaignId !== dto.campaignId) {
-    throw new BadRequestException('referralCode does not belong to the given campaignId');
+    const partnerCampaignId = (partner.campaign as any).id || partner.campaign;
+    if (partnerCampaignId !== dto.campaignId) {
+      throw new BadRequestException(
+        "referralCode does not belong to the given campaignId"
+      );
+    }
+
+    const utmSource =
+      dto.utmSource ||
+      partner.platform ||
+      (campaign as any).targetChannel ||
+      "direct";
+    const utmCampaign =
+      dto.utmCampaign ||
+      this.toSlug((campaign as any).name || (campaign as any).title) ||
+      null;
+
+    const visit = this.visitRepo.create({
+      visitedUrl: dto.visitedUrl,
+      landingPage: dto.landingPage ?? null,
+      utmSource,
+      utmCampaign,
+      utmContent: dto.utmContent ?? null,
+      userAgent: dto.userAgent ?? null,
+      ipAddress: dto.ipAddress ?? null,
+      referralCode: dto.referralCode,
+      partner,
+      campaign,
+    });
+    const saved = await this.visitRepo.save(visit);
+
+    return { visitorId: saved.id };
   }
-
-  const utmSource = dto.utmSource || partner.platform || (campaign as any).targetChannel || 'direct';
-  const utmCampaign = dto.utmCampaign || this.toSlug((campaign as any).name || (campaign as any).title) || null;
-
-  const visit = this.visitRepo.create({
-    visitedUrl: dto.visitedUrl,
-    landingPage: dto.landingPage ?? null,
-    utmSource,
-    utmCampaign,
-    utmContent: dto.utmContent ?? null,
-    userAgent: dto.userAgent ?? null,
-    ipAddress: dto.ipAddress ?? null,
-    referralCode: dto.referralCode,
-    partner,
-    campaign,
-  });
-  const saved = await this.visitRepo.save(visit);
-
-  return { visitorId: saved.id };
-}
-
 
   // ============ Conversions ============
   async createConversion(dto: CreateConversionDto) {
-    if (!dto.userId) throw new BadRequestException('userId is required');
-    if (!dto.type) throw new BadRequestException('type is required');
+    if (!dto.userId) throw new BadRequestException("userId is required");
+    if (!dto.type) throw new BadRequestException("type is required");
 
     const user = await this.userRepo.findOne({ where: { id: dto.userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
 
     let visit: VisitorTracking | null = null;
 
     if (dto.visitorId) {
       visit = await this.visitRepo.findOne({
         where: { id: dto.visitorId },
-        relations: ['partner', 'campaign'],
+        relations: ["partner", "campaign"],
       });
-      if (!visit) throw new NotFoundException('Visitor not found');
+      if (!visit) throw new NotFoundException("Visitor not found");
     } else if (dto.referralCode) {
       // Resolve by ref within campaign window
       // campaignId اختياري؛ لو مش موجود هنحاول ناخده من آخر زيارة لنفس ref
@@ -295,16 +379,19 @@ export class TrafficService {
       }
 
       // آخر زيارة بنفس ref (ولو فيه campaignId نقيّد عليها)
-      const where: FindOptionsWhere<VisitorTracking> = { referralCode: dto.referralCode };
+      const where: FindOptionsWhere<VisitorTracking> = {
+        referralCode: dto.referralCode,
+      };
       if (campaign) (where as any).campaign = { id: campaign.id };
 
       visit = await this.visitRepo.findOne({
         where,
-        relations: ['partner', 'campaign'],
-        order: { createdAt: 'DESC' },
+        relations: ["partner", "campaign"],
+        order: { createdAt: "DESC" },
       });
 
-      if (!visit) throw new NotFoundException('No visit found for referralCode');
+      if (!visit)
+        throw new NotFoundException("No visit found for referralCode");
       campaign = visit.campaign;
 
       // نافذة الإسناد من الحملة
@@ -312,10 +399,12 @@ export class TrafficService {
       const since = new Date();
       since.setDate(since.getDate() - days);
       if (visit.createdAt < since) {
-        throw new BadRequestException('Visit is outside the campaign attribution window');
+        throw new BadRequestException(
+          "Visit is outside the campaign attribution window"
+        );
       }
     } else {
-      throw new BadRequestException('Provide visitorId or referralCode');
+      throw new BadRequestException("Provide visitorId or referralCode");
     }
 
     // Idempotency: منع تكرار نفس التحويل لنفس اليوم
@@ -347,11 +436,18 @@ export class TrafficService {
   }
 
   // ============ Performance ============
-  async getPartnerPerformance(partnerId: number, q: { startDate?: string; endDate?: string }) {
+  async getPartnerPerformance(
+    partnerId: number,
+    q: { startDate?: string; endDate?: string }
+  ) {
     const partner = await this.ensurePartner(partnerId);
-    const campaign = await this.ensureCampaign((partner.campaign as any).id || partner.campaign);
+    const campaign = await this.ensureCampaign(
+      (partner.campaign as any).id || partner.campaign
+    );
 
-    const start = q.startDate ? new Date(q.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const start = q.startDate
+      ? new Date(q.startDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = q.endDate ? new Date(q.endDate) : new Date();
 
     const [visits, regs, appts] = await Promise.all([
@@ -360,23 +456,23 @@ export class TrafficService {
           partner: { id: partner.id },
           createdAt: Between(start, end),
         },
-        select: ['id', 'createdAt'],
+        select: ["id", "createdAt"],
       }),
       this.convRepo.find({
         where: {
           partner: { id: partner.id },
-          type: 'registration' as any,
+          type: "registration" as any,
           convertedAt: Between(start, end),
         },
-        select: ['id', 'convertedAt'],
+        select: ["id", "convertedAt"],
       }),
       this.convRepo.find({
         where: {
           partner: { id: partner.id },
-          type: 'appointment' as any,
+          type: "appointment" as any,
           convertedAt: Between(start, end),
         },
-        select: ['id', 'convertedAt'],
+        select: ["id", "convertedAt"],
       }),
     ]);
 
@@ -401,7 +497,9 @@ export class TrafficService {
     const totalVisitors = visits.length;
     const totalRegistrations = regs.length;
     const totalAppointments = appts.length;
-    const conversionRate = totalVisitors ? `${((totalRegistrations / totalVisitors) * 100).toFixed(2)}%` : '0%';
+    const conversionRate = totalVisitors
+      ? `${((totalRegistrations / totalVisitors) * 100).toFixed(2)}%`
+      : "0%";
 
     return {
       partner: {
