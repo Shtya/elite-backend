@@ -10,6 +10,7 @@ import { CRUD } from 'common/crud.service';
 
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { imageUploadOptions } from 'common/upload.config'; // or your consolidated upload.ts
+import { queryObjects } from 'v8';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -54,7 +55,9 @@ export class UsersController {
   findAll(@Query() query: any) {
     const filters: Record<string, any> = {};
     if (query.userType) filters.userType = query.userType;
-
+    if (query.isActive !== undefined) {
+      filters.isActive = query.isActive === 'true' ? true : query.isActive === 'false' ? false : query.isActive;
+    }
     return CRUD.findAll(this.usersService.usersRepository, 'usr', query.search, query.page, query.limit, query.sortBy, query.sortOrder, [], ['fullName', 'email', 'phoneNumber'], filters);
   }
 
