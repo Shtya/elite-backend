@@ -307,37 +307,53 @@ export class TrafficService {
   async trackVisitor(dto: TrackVisitorDto) {
     if (!dto.referralCode)
       throw new BadRequestException("referralCode is required");
-    if (!dto.campaignId)
-      throw new BadRequestException("campaignId is required");
-
-    const campaign = await this.ensureCampaign(dto.campaignId);
-
+  
+    // ✅ Get partner by referralCode (and ensure active)
     const partner = await this.partnerRepo.findOne({
       where: { referralCode: dto.referralCode, isActive: true },
       relations: ["campaign"],
     });
+  
     if (!partner)
       throw new NotFoundException(
         "Partner (by referralCode) not found or inactive"
       );
-
-    const partnerCampaignId = (partner.campaign as any).id || partner.campaign;
-    if (partnerCampaignId !== dto.campaignId) {
+  
+    // ✅ Resolve campaign automatically if not passed
+    let campaign: Campaign | null = null;
+    const partnerCampaignId = (partner.campaign as any)?.id || partner.campaign;
+  
+    if (dto.campaignId) {
+      campaign = await this.ensureCampaign(dto.campaignId);
+  
+      // Optional validation: ensure the referralCode belongs to this campaign
+      if (partnerCampaignId !== dto.campaignId) {
+        throw new BadRequestException(
+          "referralCode does not belong to the given campaignId"
+        );
+      }
+    } else {
+      // If not provided, use the partner’s linked campaign
+      campaign = partner.campaign;
+    }
+  
+    if (!campaign) {
       throw new BadRequestException(
-        "referralCode does not belong to the given campaignId"
+        "No campaign found for this referralCode and no campaignId provided"
       );
     }
-
+  
     const utmSource =
       dto.utmSource ||
       partner.platform ||
       (campaign as any).targetChannel ||
       "direct";
+  
     const utmCampaign =
       dto.utmCampaign ||
       this.toSlug((campaign as any).name || (campaign as any).title) ||
       null;
-
+  
     const visit = this.visitRepo.create({
       visitedUrl: dto.visitedUrl,
       landingPage: dto.landingPage ?? null,
@@ -350,10 +366,11 @@ export class TrafficService {
       partner,
       campaign,
     });
+  
     const saved = await this.visitRepo.save(visit);
-
     return { visitorId: saved.id };
   }
+  
 
   // ============ Conversions ============
   async createConversion(dto: CreateConversionDto,userId: number) {
