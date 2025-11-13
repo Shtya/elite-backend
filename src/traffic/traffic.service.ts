@@ -85,7 +85,7 @@ export class TrafficService {
 
   private async ensurePartner(id: number): Promise<ReferralPartner> {
     const p = await this.partnerRepo.findOne({
-      where: { id },
+      where: { user: { id } },
       relations: ["campaign"],
     });
     if (!p) throw new NotFoundException("Partner not found");
