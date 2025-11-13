@@ -649,6 +649,8 @@ export class ReferralPartner extends CoreEntity {
 
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;
+  @Column({ type: 'text', nullable: true })
+shareUrl?: string;
 }
 
 @Entity("visitor_tracking")

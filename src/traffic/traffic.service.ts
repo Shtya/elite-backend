@@ -218,14 +218,15 @@ export class TrafficService {
       userType:UserType.MARKETER
     });
     const saved = await this.partnerRepo.save(partner);
-    await this.userRepo.save(user);
-    // سيب الـUTM للـbuilder يتولد من (platform/targetChannel + campaign.name)
-    const shareUrl = this.buildShareUrlInternal(saved,  {
-      baseShareUrl: body.baseShareUrl,
-    });
-    
 
-    return { partner: saved, shareUrl };
+// Generate and save the share URL
+const shareUrl = this.buildShareUrlInternal(saved, {
+  baseShareUrl: body.baseShareUrl,
+});
+saved.shareUrl = shareUrl;
+await this.partnerRepo.save(saved);
+
+return { partner: saved, shareUrl };
   }
 
   async buildShareUrlForPartner(partnerId: number, body: BuildShareUrlDto) {
@@ -262,7 +263,7 @@ export class TrafficService {
   async getpartnersbyId(id: number) {
     const partner = await this.partnerRepo.find({
       where: { id },
-      relations: ["campaign"],
+      relations: ["campaign",],
       order: { createdAt: "DESC" },
      
     });
@@ -280,12 +281,11 @@ export class TrafficService {
       partner.platform = body.platform || null;
     const saved = await this.partnerRepo.save(partner);
 
-    // اختياري: رجّع Share URL افتراضي سريع
-    const shareUrl = this.buildShareUrlInternal(
-      saved,
-      (partner as any).campaign,
-      {}
-    );
+    // Update share URL after changes
+    const shareUrl = this.buildShareUrlInternal(saved, (partner as any).campaign, {});
+    saved.shareUrl = shareUrl;
+    await this.partnerRepo.save(saved);
+    
     return { partner: saved, shareUrl };
   }
 
@@ -434,82 +434,74 @@ export class TrafficService {
     q: { startDate?: string; endDate?: string }
   ) {
     const partner = await this.ensurePartner(partnerId);
-    const campaign = await this.ensureCampaign(
-      (partner.campaign as any).id || partner.campaign
-    );
-
+  
+    // Campaign is optional
+    const campaignId = partner.campaign ? (partner.campaign as any).id || partner.campaign : undefined;
+    const campaign = campaignId ? await this.ensureCampaign(campaignId) : undefined;
+  
     const start = q.startDate
       ? new Date(q.startDate)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const end = q.endDate ? new Date(q.endDate) : new Date();
-
+  
     const [visits, regs, appts] = await Promise.all([
       this.visitRepo.find({
-        where: {
-          partner: { id: partner.id },
-          createdAt: Between(start, end),
-        },
+        where: { partner: { id: partner.id }, createdAt: Between(start, end) },
         select: ["id", "createdAt"],
       }),
       this.convRepo.find({
-        where: {
-          partner: { id: partner.id },
-          type: "registration" as any,
-          convertedAt: Between(start, end),
-        },
+        where: { partner: { id: partner.id }, type: "registration" as any, convertedAt: Between(start, end) },
         select: ["id", "convertedAt"],
       }),
       this.convRepo.find({
-        where: {
-          partner: { id: partner.id },
-          type: "appointment" as any,
-          convertedAt: Between(start, end),
-        },
+        where: { partner: { id: partner.id }, type: "appointment" as any, convertedAt: Between(start, end) },
         select: ["id", "convertedAt"],
       }),
     ]);
-
+  
     const visitsByDay = visits.reduce<Record<string, number>>((acc, v) => {
       const d = v.createdAt.toISOString().slice(0, 10);
       acc[d] = (acc[d] || 0) + 1;
       return acc;
     }, {});
-
+  
     const regsByDay = regs.reduce<Record<string, number>>((acc, v) => {
       const d = v.convertedAt.toISOString().slice(0, 10);
       acc[d] = (acc[d] || 0) + 1;
       return acc;
     }, {});
-
+  
     const apptsByDay = appts.reduce<Record<string, number>>((acc, v) => {
       const d = v.convertedAt.toISOString().slice(0, 10);
       acc[d] = (acc[d] || 0) + 1;
       return acc;
     }, {});
-
+  
     const totalVisitors = visits.length;
     const totalRegistrations = regs.length;
     const totalAppointments = appts.length;
     const conversionRate = totalVisitors
       ? `${((totalRegistrations / totalVisitors) * 100).toFixed(2)}%`
       : "0%";
-
+  
     return {
       partner: {
         id: partner.id,
         name: partner.name,
         platform: partner.platform,
         referralCode: partner.referralCode,
-        campaignId: (partner.campaign as any).id || partner.campaign,
+        campaignId: campaignId,
         isActive: partner.isActive,
       },
-      campaign: {
-        id: campaign.id,
-        name: (campaign as any).name,
-        defaultChannel: (campaign as any).defaultChannel,
-        defaultUtmSource: (campaign as any).defaultUtmSource,
-        attributionWindowDays: this.getAttributionWindowDays(campaign),
-      },
+      campaign: campaign
+        ? {
+            id: campaign.id,
+            name: (campaign as any).name,
+            defaultChannel: (campaign as any).defaultChannel,
+            defaultUtmSource: (campaign as any).defaultUtmSource,
+            attributionWindowDays: this.getAttributionWindowDays(campaign),
+          }
+        : null,
       metrics: {
         visits: totalVisitors,
         registrations: totalRegistrations,
@@ -523,9 +515,10 @@ export class TrafficService {
       },
       status: {
         active: partner.isActive,
-        healthFlags: [], // تقدر تضيف تحليلات IP/UA لاحقًا
+        healthFlags: [],
       },
       period: { startDate: start.toISOString(), endDate: end.toISOString() },
     };
   }
+  
 }
