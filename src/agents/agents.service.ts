@@ -23,21 +23,17 @@ export class AgentsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(createAgentDto: CreateAgentDto,userId:number): Promise<Agent> {
-    const existingAgent = await this.usersRepository.findOne({
-      where: {  id: userId },
+  async create(createAgentDto: CreateAgentDto): Promise<Agent> {
+
+    const existingAgentRecord = await this.agentsRepository.findOne({
+      where: { user: { id: createAgentDto.userId } },
     });
-
-    if (!existingAgent) {
-      throw new NotFoundException('User not found');
+    if (existingAgentRecord) {
+      throw new ConflictException('Agent application already exists for this user');
     }
-    if (existingAgent.userType == UserType.AGENT) {
-      throw new ConflictException('Agent already exists for this user');
-    }
-
 
     const agent = this.agentsRepository.create({
-      user: existingAgent,
+      user: existingAgentRecord.user,
       city: { id: createAgentDto.cityId },
       identityProofUrl: createAgentDto.identityProof,
       residencyDocumentUrl: createAgentDto.residencyDocument,
@@ -46,7 +42,7 @@ export class AgentsService {
     await this.notificationsService.notifyUserType(UserType.ADMIN, {
       type: NotificationType.SYSTEM,
       title: 'New Agent Application',
-      message: `Agent ${existingAgent.fullName} has submitted a new application and requires approval.`,
+      message: `Agent ${existingAgentRecord.user.fullName} has submitted a new application and requires approval.`,
       relatedId: agent.id,
       channel: NotificationChannel.IN_APP,
     });

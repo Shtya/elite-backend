@@ -56,6 +56,8 @@ export class AgentsController {
     },
   ) {
     createAgentDto.cityId = Number(createAgentDto.cityId); 
+    console.log(req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase())
+    console.log(createAgentDto.userId)
     if (isNaN(createAgentDto.cityId)) {
       throw new BadRequestException('cityId must be a number');
     }
@@ -66,6 +68,9 @@ export class AgentsController {
       throw new BadRequestException(
         'The admin must provide userId for the customer',
       );
+    }
+    else if (req.user.userType?.toLowerCase() === UserType.CUSTOMER.toLowerCase()) {
+      createAgentDto.userId = req.user.id;
     }
     
 
@@ -83,7 +88,7 @@ export class AgentsController {
         'identityProof or residencyDocument is missing (send as URL or file)',
       );
     }
-    return this.agentsService.create(createAgentDto,req.user.id);
+    return this.agentsService.create(createAgentDto);
   }
   @Get("dashboard")
   @Roles(UserType.AGENT)
