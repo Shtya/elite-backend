@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Query, UseGuards, Param } from '@nestjs/common';
 import { TimelineService } from './timeline.service';
-import { CreateTimelineEventDto, TimelineQueryDto } from '../dto/timeline.dto';
+import { CreateTimelineEventDto, TimelineQueryDto } from '../../dto/timeline.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 @Controller('timeline')

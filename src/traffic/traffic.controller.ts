@@ -16,7 +16,7 @@ import { TrafficService } from './traffic.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 
 @Controller('traffic')
 export class TrafficController {
@@ -82,7 +82,8 @@ export class TrafficController {
 
   // -------- Conversions (Admin/Marketer) --------
   @Post('conversions')
-
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserType.ADMIN, UserType.MARKETER)
   createConversion(@Body() body: any, @Req() req: Request) {
     // body: { userId, type: 'registration'|'appointment', visitorId?, referralCode?, campaignId? }
     const headerRef = (req.headers['x-ref'] as string) || undefined;

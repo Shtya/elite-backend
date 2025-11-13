@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
-import { ConnectCalendarAccountDto, SyncAppointmentDto, CalendarQueryDto } from '../dto/calendar.dto';
+import { ConnectCalendarAccountDto, SyncAppointmentDto, CalendarQueryDto } from '../../dto/calendar.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 @Controller('calendar')

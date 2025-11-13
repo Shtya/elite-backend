@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, VerificationStatus } from 'src/entities/global.entity';
-import { CreateUserDto, UpdateUserDto, VerifyUserDto, UserQueryDto } from 'src/dto/users.dto';
+import { User, VerificationStatus } from 'entities/global.entity';
+import { CreateUserDto, UpdateUserDto, VerifyUserDto, UserQueryDto } from 'dto/users.dto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()

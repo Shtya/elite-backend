@@ -1,9 +1,9 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
-import { Property, UserType, User } from 'src/entities/global.entity';
-import { CreateFavoriteDto, FavoriteQueryDto } from 'src/dto/favorites.dto';
-import { FavoriteProperty } from 'src/entities/global.entity';
+import { Property, UserType, User } from 'entities/global.entity';
+import { CreateFavoriteDto, FavoriteQueryDto } from 'dto/favorites.dto';
+import { FavoriteProperty } from 'entities/global.entity';
 
 @Injectable()
 export class FavoritesService {

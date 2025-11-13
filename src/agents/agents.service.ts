@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, CustomerReview, NotificationChannel, NotificationType, User, UserType } from 'src/entities/global.entity';
-import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../dto/agents.dto';
+import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, CustomerReview, NotificationChannel, NotificationType, User, UserType } from 'entities/global.entity';
+import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

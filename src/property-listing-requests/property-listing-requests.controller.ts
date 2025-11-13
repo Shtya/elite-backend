@@ -8,11 +8,11 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { PropertyListingRequestsService } from './property-listing-requests.service';
-import { AddAttachmentDto, CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto } from '../dto/property-listing-requests.dto';
+import { AddAttachmentDto, CreatePropertyListingRequestDto, UpdatePropertyListingRequestDto } from '../../dto/property-listing-requests.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 import { genericUploadOptions, toWebPathFiles } from 'common/upload.config';
 

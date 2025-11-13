@@ -21,11 +21,11 @@ import {
   CreateAgentDto,
   UpdateAgentDto,
   ApproveAgentDto,
-} from "../dto/agents.dto";
+} from "../../dto/agents.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
-import { UserType } from "src/entities/global.entity";
+import { UserType } from "entities/global.entity";
 import { CRUD } from "common/crud.service";
 interface RequestWithUser extends Request {
   user: any;

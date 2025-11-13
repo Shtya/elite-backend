@@ -56,18 +56,3 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 src/firebase/venuat-6f346-firebase-adminsdk-fbsvc-b2ce39bdcd.json
 .vercel
-# Ignore all JS files except the compiled ones in dist/src
-*.js
-*.js.map
-*.d.ts
-
-# Make an exception for the compiled files in dist/src
-!dist/src/**/*.js
-
-# Ignore node_modules (Vercel installs dependencies)
-node_modules
-
-# Ignore other build artifacts
-*.log
-*.tsbuildinfo
-dist/test

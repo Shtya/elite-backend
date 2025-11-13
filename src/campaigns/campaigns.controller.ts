@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
 import { CampaignsService } from './campaigns.service';
-import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../dto/campaigns.dto';
+import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../../dto/campaigns.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 @Controller('campaigns')

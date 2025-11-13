@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FavoriteProperty, Property, User } from 'src/entities/global.entity';
+import { FavoriteProperty, Property, User } from 'entities/global.entity';
 import { FavoritesController } from './favorite-property.controller';
 import { FavoritesService } from './favorite-property.service';
 

@@ -1,29 +1,49 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
-import { join } from 'path';
-import { NestExpressApplication } from '@nestjs/platform-express';
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.useStaticAssets(join(__dirname, '..', '..', '/uploads'), { prefix: '/uploads/' });
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./app.module";
+import { ValidationPipe } from "@nestjs/common";
+import { ExpressAdapter } from "@nestjs/platform-express";
+import * as express from "express";
+
+const server = express();
+
+export async function createApp() {
+  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
   app.enableCors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: true,
     credentials: true,
   });
-    app.useGlobalPipes(
+
+  app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: false,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
+    })
   );
-  await app.listen(process.env.PORT ?? 3000);
-  
+
+  await app.init();
+  return server;
 }
-bootstrap();
+
+// For Vercel serverless
+let cachedServer: express.Express;
+export default async function handler(
+  req: express.Request,
+  res: express.Response
+) {
+  if (!cachedServer) {
+    cachedServer = await createApp();
+  }
+  return cachedServer(req, res);
+}
+
+// For local development
+if (process.env.NODE_ENV === "development") {
+  createApp().then((app) => {
+    app.listen(process.env.PORT || 3000, () => {
+      console.log(
+        `🚀 Server running on http://localhost:${process.env.PORT || 3000}`
+      );
+    });
+  });
+}

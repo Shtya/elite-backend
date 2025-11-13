@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { AgentAvailabilityService } from './agent-availability.service';
-import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto, AgentAvailabilityQueryDto } from '../dto/agent-availability.dto';
+import { CreateAgentAvailabilityDto, UpdateAgentAvailabilityDto, CreateAgentPreferredPropertyDto, AgentAvailabilityQueryDto } from '../../dto/agent-availability.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 @Controller('agent-availability')

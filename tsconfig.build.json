@@ -1,11 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./",
-    "module": "commonjs",
-    "declaration": false,
-    "sourceMap": true
-  },
-  "include": ["src/**/*", "decorators/**/*", "dto/**/*"]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
 }

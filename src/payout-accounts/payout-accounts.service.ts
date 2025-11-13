@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { AgentPayoutAccount, User } from 'src/entities/global.entity';
-import { CreatePayoutAccountDto, UpdatePayoutAccountDto } from '../dto/payout-accounts.dto';
+import { AgentPayoutAccount, User } from 'entities/global.entity';
+import { CreatePayoutAccountDto, UpdatePayoutAccountDto } from '../../dto/payout-accounts.dto';
 
 @Injectable()
 export class PayoutAccountsService {

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Campaign, CampaignAudience, CampaignChannel, CampaignFrequency, CampaignImage, CampaignRunType, CampaignStatus, NotificationChannel, NotificationType, User, UserType } from 'src/entities/global.entity';
-import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../dto/campaigns.dto';
+import { Campaign, CampaignAudience, CampaignChannel, CampaignFrequency, CampaignImage, CampaignRunType, CampaignStatus, NotificationChannel, NotificationType, User, UserType } from 'entities/global.entity';
+import { CreateCampaignDto, UpdateCampaignDto, CampaignQueryDto, CampaignImageDto } from '../../dto/campaigns.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

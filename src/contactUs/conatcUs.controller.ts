@@ -11,11 +11,11 @@ import {
     HttpCode,
   } from '@nestjs/common';
   import { ContactUsService } from './contactUs.service';
-  import { CreateContactUsDto } from 'src/dto/users.dto';
+  import { CreateContactUsDto } from 'dto/users.dto';
   import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
   import { RolesGuard } from '../auth/guards/roles.guard';
   import { Roles } from '../auth/decorators/roles.decorator';
-  import { UserType } from 'src/entities/global.entity';
+  import { UserType } from 'entities/global.entity';
   import { CRUD } from 'common/crud.service';
   
   @Controller('contact-us')

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { ReportSnapshot, ReportSnapshotType, Appointment, AgentPayment, User, Conversion, VisitorTracking, PropertyListingRequest, Property } from 'src/entities/global.entity';
-import { GenerateReportDto, ReportQueryDto, AgentPerformanceQueryDto, MarketingPerformanceQueryDto } from '../dto/reports.dto';
+import { ReportSnapshot, ReportSnapshotType, Appointment, AgentPayment, User, Conversion, VisitorTracking, PropertyListingRequest, Property } from 'entities/global.entity';
+import { GenerateReportDto, ReportQueryDto, AgentPerformanceQueryDto, MarketingPerformanceQueryDto } from '../../dto/reports.dto';
 
 @Injectable()
 export class ReportsService {

@@ -1,5 +1,5 @@
 // src/team/team-member.entity.ts
-import { CoreEntity } from 'src/entities/global.entity';
+import { CoreEntity } from 'entities/global.entity';
 import { Entity, Column, Index } from 'typeorm';
 
 @Entity('team_members')

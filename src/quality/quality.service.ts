@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { QualityCase, QualityCaseNote, QualityCaseStatus, QualityCasePriority, User, NotificationType, NotificationChannel, UserType } from 'src/entities/global.entity';
-import { CreateQualityCaseDto, UpdateQualityCaseDto, AddCaseNoteDto, QualityCaseQueryDto } from '../dto/quality.dto';
+import { QualityCase, QualityCaseNote, QualityCaseStatus, QualityCasePriority, User, NotificationType, NotificationChannel, UserType } from 'entities/global.entity';
+import { CreateQualityCaseDto, UpdateQualityCaseDto, AddCaseNoteDto, QualityCaseQueryDto } from '../../dto/quality.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()

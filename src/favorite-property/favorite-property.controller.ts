@@ -3,9 +3,9 @@ import { FavoritesService } from './favorite-property.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'src/entities/global.entity';
-import { CreateFavoriteDto, FavoriteQueryDto } from 'src/dto/favorites.dto';
-import { FavoriteProperty } from 'src/entities/global.entity';
+import { UserType } from 'entities/global.entity';
+import { CreateFavoriteDto, FavoriteQueryDto } from 'dto/favorites.dto';
+import { FavoriteProperty } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 type ReqUser = { user: { id: number; userType: UserType } };
@@ -70,6 +70,7 @@ export class FavoritesController {
   }
 
   @Post()
+  @Roles(UserType.CUSTOMER, UserType.ADMIN)
   add(
     @Req() req: ReqUser,
     @Body() dto: CreateFavoriteDto,
