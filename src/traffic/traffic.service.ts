@@ -260,7 +260,6 @@ export class TrafficService {
     return { page, limit, total, items };
   }
   async getpartnersbyId(id: number) {
-  
     const partner = await this.partnerRepo.find({
       where: { id },
       relations: ["campaign"],

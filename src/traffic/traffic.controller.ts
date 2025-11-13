@@ -58,8 +58,8 @@ export class TrafficController {
   @Get('partners/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserType.ADMIN, UserType.MARKETER)
-  getPartnerById(@Param() id: number) {
-    return this.service.getpartnersbyId(id);
+  getPartnerById(@Param('id') id: number) {
+    return this.service.getpartnersbyId(+id);
   }
   
 
