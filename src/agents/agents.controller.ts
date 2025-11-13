@@ -59,11 +59,15 @@ export class AgentsController {
     if (isNaN(createAgentDto.cityId)) {
       throw new BadRequestException('cityId must be a number');
     }
-    if (req.user.type == UserType.ADMIN && !createAgentDto.userId) {
+    if (
+      req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase() &&
+      !createAgentDto.userId
+    ) {
       throw new BadRequestException(
         'The admin must provide userId for the customer',
       );
     }
+    
 
     
     if (files?.identityProof?.[0]) {
@@ -79,7 +83,6 @@ export class AgentsController {
         'identityProof or residencyDocument is missing (send as URL or file)',
       );
     }
-
     return this.agentsService.create(createAgentDto,req.user.id);
   }
   @Get("dashboard")
