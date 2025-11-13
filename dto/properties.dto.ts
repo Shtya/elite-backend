@@ -1,5 +1,7 @@
 import { IsNotEmpty, IsString, IsNumber, IsEnum, IsOptional, IsArray, IsObject, IsBoolean } from 'class-validator';
 import { AccessType } from '../entities/global.entity';
+import { Transform, Type } from 'class-transformer';
+
 
 export class CreatePropertyDto {
   @IsNotEmpty()
@@ -11,21 +13,23 @@ export class CreatePropertyDto {
   description: string;
 
   @IsNotEmpty()
+  @Type(() => Number)
   propertyTypeId: number;
 
   @IsNotEmpty()
+  @Type(() => Number)
   cityId: number;
 
   @IsNotEmpty()
-  
+  @Type(() => Number)
   areaId: number;
 
   @IsNotEmpty()
-  
+  @Type(() => Number)
   bedrooms: number;
 
   @IsNotEmpty()
-
+  @Type(() => Number)
   bathrooms: number;
 
   @IsNotEmpty()
@@ -36,12 +40,27 @@ export class CreatePropertyDto {
   @IsString()
   price?: string;
 
+  // 👇 Parse JSON strings (e.g. when sent as "specifications={...}" in multipart/form-data)
   @IsNotEmpty()
-  
+  @IsObject()
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      return {};
+    }
+  })
   specifications: Record<string, any>;
 
   @IsNotEmpty()
-  
+  @IsObject()
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      return {};
+    }
+  })
   guarantees: Record<string, any>;
 
   @IsEnum(AccessType)
@@ -71,7 +90,6 @@ export class CreatePropertyDto {
   @IsString()
   mapPlaceId?: string;
 }
-
 export class UpdatePropertyDto {
   @IsOptional()
   @IsString()
@@ -82,23 +100,23 @@ export class UpdatePropertyDto {
   description?: string;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   propertyTypeId?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   cityId?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   areaId?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   bedrooms?: number;
 
   @IsOptional()
-  @IsNumber()
+  @Type(() => Number)
   bathrooms?: number;
 
   @IsOptional()
@@ -111,10 +129,24 @@ export class UpdatePropertyDto {
 
   @IsOptional()
   @IsObject()
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      return {};
+    }
+  })
   specifications?: Record<string, any>;
 
   @IsOptional()
   @IsObject()
+  @Transform(({ value }) => {
+    try {
+      return typeof value === 'string' ? JSON.parse(value) : value;
+    } catch {
+      return {};
+    }
+  })
   guarantees?: Record<string, any>;
 
   @IsOptional()
@@ -147,6 +179,7 @@ export class UpdatePropertyDto {
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
 }
 

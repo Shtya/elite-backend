@@ -87,27 +87,33 @@ export class PropertiesService {
 
   async update(id: number, updatePropertyDto: UpdatePropertyDto): Promise<Property> {
     const property = await this.findOne(id);
-
+  
     if (updatePropertyDto.propertyTypeId) {
       property.propertyType = await this.propertyTypeRepository.findOne({
         where: { id: updatePropertyDto.propertyTypeId },
       });
     }
-
+  
     if (updatePropertyDto.cityId) {
       property.city = await this.cityRepository.findOne({
         where: { id: updatePropertyDto.cityId },
       });
     }
-
+  
     if (updatePropertyDto.areaId) {
       property.area = await this.areaRepository.findOne({
         where: { id: updatePropertyDto.areaId },
       });
     }
-
+  
+  
+    if ((updatePropertyDto as any).removeMediaIds?.length) {
+      const ids = (updatePropertyDto as any).removeMediaIds as number[];
+      await this.propertyMediaRepository.delete(ids);
+    }
+  
     Object.assign(property, updatePropertyDto);
-
+  
     await this.notificationsService.createNotification({
       userId: property.createdBy.id,
       type: NotificationType.SYSTEM,
@@ -116,10 +122,10 @@ export class PropertiesService {
       relatedId: property.id,
       channel: NotificationChannel.IN_APP,
     });
-
+  
     return this.propertiesRepository.save(property);
   }
-
+  
   async remove(id: number): Promise<void> {
     const property = await this.findOne(id);
     await this.propertiesRepository.softDelete(id);

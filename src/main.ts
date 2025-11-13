@@ -1,14 +1,17 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
-import { ExpressAdapter } from "@nestjs/platform-express";
+import { ExpressAdapter, NestExpressApplication } from "@nestjs/platform-express";
 import * as express from "express";
+import { join } from "path";
 
 const server = express();
 
 export async function createApp() {
-  const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
-
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(server));
+  app.useStaticAssets(join(__dirname, '..', '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
   app.enableCors({
     origin: true,
     credentials: true,

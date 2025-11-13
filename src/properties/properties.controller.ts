@@ -94,9 +94,33 @@ export class PropertiesController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)
-  update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto) {
-    return this.propertiesService.update(+id, updatePropertyDto);
+  @UseInterceptors(FilesInterceptor('media', 50, mixedUploadOptions))
+  async update(
+    @Param('id') id: string,
+    @Body() updatePropertyDto: UpdatePropertyDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ) {
+    const propertyId = +id;
+    const updated = await this.propertiesService.update(propertyId, updatePropertyDto);
+  
+    if (files && files.length > 0) {
+      // handle new media uploads
+      const uploadedMedias = files.map((file, i) => {
+        const isImage = /^image\//.test(file.mimetype);
+        const basePath = isImage ? '/uploads/images/' : '/uploads/videos/';
+        return {
+          mediaUrl: `${basePath}${file.filename}`,
+          isPrimary: i === 0,
+          orderIndex: i,
+        };
+      });
+  
+      await this.propertiesService.addManyMedia(propertyId, uploadedMedias);
+    }
+  
+    return this.propertiesService.findOne(propertyId);
   }
+  
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @Roles(UserType.ADMIN, UserType.AGENT)

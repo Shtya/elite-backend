@@ -31,14 +31,12 @@ export class FavoritesController {
     const userId = req.user.id;
     const skip = (page - 1) * limit;
   
-    // Base query builder
     const qb = this.svc.favRepo
       .createQueryBuilder('favorite_properties')
       .leftJoinAndSelect('favorite_properties.user', 'user')
       .leftJoinAndSelect('favorite_properties.property', 'property')
       .where('user.id = :userId', { userId });
   
-    // Optional search (if you have searchable fields)
     if (search) {
       qb.andWhere(
         '(property.title ILIKE :search OR property.location ILIKE :search)',
@@ -46,12 +44,10 @@ export class FavoritesController {
       );
     }
   
-    // Apply sorting and pagination
     qb.orderBy(`favorite_properties.${sortBy}`, sortOrder)
       .skip(skip)
       .take(limit);
   
-    // Execute
     const [data, total] = await qb.getManyAndCount();
   
     return {
@@ -70,7 +66,6 @@ export class FavoritesController {
   }
 
   @Post()
-  @Roles(UserType.CUSTOMER, UserType.ADMIN)
   add(
     @Req() req: ReqUser,
     @Body() dto: CreateFavoriteDto,
