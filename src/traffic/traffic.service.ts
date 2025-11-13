@@ -378,9 +378,8 @@ export class TrafficService {
   async createConversion(dto: CreateConversionDto,userId: number) {
     if (!userId) throw new BadRequestException("userId is required");
     if (!dto.type) throw new BadRequestException("type is required");
-
     const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (user) throw new NotFoundException("User not found");
+    if (!user) throw new NotFoundException("User not found");
 
     let visit: VisitorTracking | null = null;
 
