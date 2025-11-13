@@ -308,7 +308,7 @@ export class TrafficService {
     if (!dto.referralCode)
       throw new BadRequestException("referralCode is required");
   
-    // ✅ Get partner by referralCode (and ensure active)
+    // ✅ Find the partner by referral code
     const partner = await this.partnerRepo.findOne({
       where: { referralCode: dto.referralCode, isActive: true },
       relations: ["campaign"],
@@ -319,41 +319,43 @@ export class TrafficService {
         "Partner (by referralCode) not found or inactive"
       );
   
-    // ✅ Resolve campaign automatically if not passed
+    // ✅ Try to resolve campaign (optional)
     let campaign: Campaign | null = null;
     const partnerCampaignId = (partner.campaign as any)?.id || partner.campaign;
   
     if (dto.campaignId) {
-      campaign = await this.ensureCampaign(dto.campaignId);
+      try {
+        campaign = await this.ensureCampaign(dto.campaignId);
   
-      // Optional validation: ensure the referralCode belongs to this campaign
-      if (partnerCampaignId !== dto.campaignId) {
-        throw new BadRequestException(
-          "referralCode does not belong to the given campaignId"
-        );
+        // Optional consistency check
+        if (partnerCampaignId && partnerCampaignId !== dto.campaignId) {
+          throw new BadRequestException(
+            "referralCode does not belong to the given campaignId"
+          );
+        }
+      } catch {
+        // ignore if invalid campaignId — tracking still continues
+        campaign = null;
       }
-    } else {
-      // If not provided, use the partner’s linked campaign
+    } else if (partner.campaign) {
+      // Use partner's linked campaign if available
       campaign = partner.campaign;
     }
   
-    if (!campaign) {
-      throw new BadRequestException(
-        "No campaign found for this referralCode and no campaignId provided"
-      );
-    }
-  
+    // ✅ Build safe UTM values (without assuming campaign exists)
     const utmSource =
       dto.utmSource ||
       partner.platform ||
-      (campaign as any).targetChannel ||
-      "direct";
+      ((campaign as any)?.targetChannel ?? "direct");
   
     const utmCampaign =
       dto.utmCampaign ||
-      this.toSlug((campaign as any).name || (campaign as any).title) ||
+      this.toSlug(
+        (campaign as any)?.name || (campaign as any)?.title || "general"
+      ) ||
       null;
   
+    // ✅ Create visit even if campaign is null
     const visit = this.visitRepo.create({
       visitedUrl: dto.visitedUrl,
       landingPage: dto.landingPage ?? null,
@@ -364,7 +366,7 @@ export class TrafficService {
       ipAddress: dto.ipAddress ?? null,
       referralCode: dto.referralCode,
       partner,
-      campaign,
+      campaign: campaign ?? null, // ✅ allow null
     });
   
     const saved = await this.visitRepo.save(visit);
