@@ -113,7 +113,6 @@ async findAll(@Query() query: any) {
   if (query.cityId) qb.andWhere('city.id = :cityId', { cityId: Number(query.cityId) });
 
   // Only users of type AGENT
-  qb.andWhere('agent_user.user_type = :userType', { userType: UserType.AGENT });
 
   const [records, total] = await qb.getManyAndCount();
 
