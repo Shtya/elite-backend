@@ -25,30 +25,45 @@ export class AgentsService {
 
   async create(createAgentDto: CreateAgentDto): Promise<Agent> {
 
+    // Step 1: Check if agent already exists
     const existingAgentRecord = await this.agentsRepository.findOne({
       where: { user: { id: createAgentDto.userId } },
     });
+  
     if (existingAgentRecord) {
       throw new ConflictException('Agent application already exists for this user');
     }
-
+  
+    // Step 2: Load the user (this was missing)
+    const user = await this.usersRepository.findOne({
+      where: { id: createAgentDto.userId },
+    });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    // Step 3: Create the new agent
     const agent = this.agentsRepository.create({
-      user: existingAgentRecord.user,
+      user: user,
       city: { id: createAgentDto.cityId },
       identityProofUrl: createAgentDto.identityProof,
       residencyDocumentUrl: createAgentDto.residencyDocument,
     });
-
+  
+    // Step 4: Notify admins
     await this.notificationsService.notifyUserType(UserType.ADMIN, {
       type: NotificationType.SYSTEM,
       title: 'New Agent Application',
-      message: `Agent ${existingAgentRecord.user.fullName} has submitted a new application and requires approval.`,
+      message: `Agent ${user.fullName} has submitted a new application and requires approval.`,
       relatedId: agent.id,
       channel: NotificationChannel.IN_APP,
     });
-
+  
+    // Step 5: Save & return
     return this.agentsRepository.save(agent);
   }
+  
 
   async findAll(query: AgentQueryDto): Promise<{ data: Agent[]; total: number }> {
     const { status, cityId, page = 1, limit = 10 } = query;

@@ -56,8 +56,7 @@ export class AgentsController {
     },
   ) {
     createAgentDto.cityId = Number(createAgentDto.cityId); 
-    console.log(req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase())
-    console.log(createAgentDto.userId)
+
     if (isNaN(createAgentDto.cityId)) {
       throw new BadRequestException('cityId must be a number');
     }
