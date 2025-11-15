@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Req, ParseIntPipe } from '@nestjs/common';
 import { AppointmentsService } from './appointments.service';
 import { CreateAppointmentDto, UpdateAppointmentDto, AssignAgentDto, UpdateStatusDto, AppointmentQueryDto } from '../../dto/appointments.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -87,7 +87,7 @@ export class AppointmentsController {
       records,
     };
   }
-  @Get("agent")
+@Get("agent")
 @Roles(UserType.AGENT)
 async getAgentAppointments(@Req() req: RequestWithUser) {
   return this.appointmentsService.getAgentAppointments(+req.user.id);
@@ -128,6 +128,17 @@ async respondToRequest(
   @Roles(UserType.ADMIN, UserType.AGENT, UserType.CUSTOMER)
   updateStatus(@Param('id') id: string, @Body() updateStatusDto: UpdateStatusDto) {
     return this.appointmentsService.updateStatus(+id, updateStatusDto);
+  }
+  @Patch(":id/final-status")
+  async updateFinalStatus(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: any,
+  ) {
+    return this.appointmentsService.updateAppointmentFinalStatus(
+      id,
+      dto.status,
+      dto.notes,
+    );
   }
 
   @Get('customer/:customerId')

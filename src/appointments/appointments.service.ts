@@ -139,33 +139,38 @@ export class AppointmentsService {
   async respondToAppointmentRequest(
     requestId: number,
     agentId: number,
-    status: AgentAppointmentRequestStatus
+    status: AgentAppointmentRequestStatus,
+    notes?: string
   ) {
     const request = await this.agentAppointmentRequestRepository.findOne({
       where: { id: requestId },
-      relations: ["appointment", "agent"],
+      relations: ["appointment", "agent", "appointment.customer"],
     });
-    const agents = await this.agentRepository.findOne({ where: { user: { id: agentId } } });
+  
+    const agent = await this.agentRepository.findOne({
+      where: { user: { id: agentId } },
+    });
   
     if (!request) throw new NotFoundException("Request not found");
+    if (!agent) throw new NotFoundException("Agent not found");
   
-    if (request.agent.id !== agents.id) {
+    if (request.agent.id !== agent.id) {
       throw new ForbiddenException("You don't have access to this request");
     }
   
-    if (request.status !== AgentAppointmentRequestStatus.PENDING) {
+    if (request.status === AgentAppointmentRequestStatus.ACCEPTED) {
       throw new BadRequestException("Request has already been processed");
     }
   
     const appointment = request.appointment;
   
-    // Helper to combine date and time
-
-  
+    // Combine date & time
     const startDateTime = this.combineDateTime(appointment.appointmentDate, appointment.startTime);
     const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
   
-    // ✔ Check for overlapping appointments if agent ACCEPTS
+    // -----------------------------
+    // ✔ If ACCEPTING → check overlap
+    // -----------------------------
     if (status === AgentAppointmentRequestStatus.ACCEPTED) {
       const agentAppointments = await this.appointmentsRepository.find({
         where: {
@@ -185,12 +190,13 @@ export class AppointmentsService {
         }
       }
   
-      // Assign agent and update appointment
+      // Assign the agent
       appointment.agent = request.agent;
       appointment.status = AppointmentStatus.CONFIRMED;
+  
       await this.appointmentsRepository.save(appointment);
   
-      // Reject all other pending requests for this appointment
+      // Reject other pending requests
       await this.agentAppointmentRequestRepository.update(
         {
           appointment: { id: appointment.id },
@@ -202,7 +208,7 @@ export class AppointmentsService {
         }
       );
   
-      // Notify customer
+      // Customer notification
       await this.notificationsService.createNotification({
         userId: appointment.customer.id,
         type: NotificationType.APPOINTMENT_REMINDER,
@@ -221,14 +227,61 @@ export class AppointmentsService {
         channel: NotificationChannel.IN_APP,
       });
     }
+ 
+    const oldStatus = appointment.status;
   
-    // Update request status and respondedAt
+    const statusHistory = this.statusHistoryRepository.create({
+      appointment,
+      oldStatus,
+      newStatus: appointment.status,
+      changedBy: { id: agentId } as User, // Should be logged-in user
+      notes,
+    });
+    await this.statusHistoryRepository.save(statusHistory);
+  
+    // -----------------------------
+    // ✔ Notifications for status change (Merged)
+    // -----------------------------
+    const statusMessages = {
+      assigned: 'An agent has been assigned to your appointment.',
+      confirmed: 'Your appointment has been confirmed.',
+      in_progress: 'Your appointment is currently in progress.',
+      completed: 'Your appointment has been completed.',
+      cancelled: 'Your appointment has been cancelled.',
+    };
+  
+    if (statusMessages[appointment.status]) {
+      // Notify customer
+      await this.notificationsService.createNotification({
+        userId: appointment.customer.id,
+        type: NotificationType.APPOINTMENT_REMINDER,
+        title: 'Appointment Status Updated',
+        message: statusMessages[appointment.status],
+        relatedId: appointment.id,
+        channel: NotificationChannel.IN_APP,
+      });
+  
+      // Notify agent
+      if (appointment.agent) {
+        await this.notificationsService.createNotification({
+          userId: appointment.agent.id,
+          type: NotificationType.APPOINTMENT_REMINDER,
+          title: 'Appointment Status Updated',
+          message: statusMessages[appointment.status],
+          relatedId: appointment.id,
+          channel: NotificationChannel.IN_APP,
+        });
+      }
+    }
+  
+    // Update request final status
     request.status = status;
     request.respondedAt = new Date();
     await this.agentAppointmentRequestRepository.save(request);
   
-    return request;
+    return { request, appointment };
   }
+  
   async getAgentAppointments(
     agentId: number,
     page: number = 1,
@@ -406,4 +459,78 @@ export class AppointmentsService {
 
     return this.appointmentsRepository.save(appointment);
   }
+  async updateAppointmentFinalStatus(
+    appointmentId: number,
+    status: AppointmentStatus,   // "completed" | "expired"
+    notes?: string
+  ): Promise<Appointment> {
+  
+    const appointment = await this.findOne(appointmentId);
+    const now = new Date();
+  
+    const startDateTime = this.combineDateTime(appointment.appointmentDate, appointment.startTime);
+    const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
+  
+    // ---------------------------
+    // ❌ Prevent early status update
+    // ---------------------------
+    if (status === AppointmentStatus.COMPLETED) {
+      if (now < endDateTime) {
+        throw new BadRequestException(
+          `You cannot mark this appointment as completed before ${appointment.endTime}.`
+        );
+      }
+    }
+  
+    if (status === AppointmentStatus.EXPIRED) {
+      if (now < startDateTime) {
+        throw new BadRequestException(
+          `You cannot mark this appointment as expired before its start time.`
+        );
+      }
+    }
+  
+    const oldStatus = appointment.status;
+    appointment.status = status;
+ 
+    const statusHistory = this.statusHistoryRepository.create({
+      appointment,
+      oldStatus,
+      newStatus: status,
+      changedBy: { id: 1 } as User, // TODO: replace with real logged-in user
+      notes,
+    });
+    await this.statusHistoryRepository.save(statusHistory);
+  
+    // ---------------------------
+    // ✔ Notifications
+    // ---------------------------
+    const statusMessages = {
+      completed: 'Your appointment has been marked as completed.',
+      expired: 'Your appointment has expired.',
+    };
+  
+    await this.notificationsService.createNotification({
+      userId: appointment.customer.id,
+      type: NotificationType.APPOINTMENT_REMINDER,
+      title: "Appointment Status Updated",
+      message: statusMessages[status],
+      relatedId: appointment.id,
+      channel: NotificationChannel.IN_APP,
+    });
+  
+    if (appointment.agent) {
+      await this.notificationsService.createNotification({
+        userId: appointment.agent.id,
+        type: NotificationType.APPOINTMENT_REMINDER,
+        title: "Appointment Status Updated",
+        message: statusMessages[status],
+        relatedId: appointment.id,
+        channel: NotificationChannel.IN_APP,
+      });
+    }
+  
+    return this.appointmentsRepository.save(appointment);
+  }
+  
 }
