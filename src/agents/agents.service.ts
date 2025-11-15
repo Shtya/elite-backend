@@ -23,7 +23,7 @@ export class AgentsService {
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(createAgentDto: CreateAgentDto): Promise<Agent> {
+  async create(createAgentDto: CreateAgentDto,byAdmin:boolean): Promise<Agent> {
 
     // Step 1: Check if agent already exists
     const existingAgentRecord = await this.agentsRepository.findOne({
@@ -49,16 +49,21 @@ export class AgentsService {
       city: { id: createAgentDto.cityId },
       identityProofUrl: createAgentDto.identityProof,
       residencyDocumentUrl: createAgentDto.residencyDocument,
+      area:  { id: createAgentDto.areaId }, 
+     status: byAdmin ? AgentApprovalStatus.APPROVED : AgentApprovalStatus.PENDING, 
     });
+    user.userType = byAdmin ? UserType.AGENT : UserType.CUSTOMER;
+    await user.save();
   
     // Step 4: Notify admins
+    if(!byAdmin){
     await this.notificationsService.notifyUserType(UserType.ADMIN, {
       type: NotificationType.SYSTEM,
       title: 'New Agent Application',
       message: `Agent ${user.fullName} has submitted a new application and requires approval.`,
       relatedId: agent.id,
       channel: NotificationChannel.IN_APP,
-    });
+    });}
   
     // Step 5: Save & return
     return this.agentsRepository.save(agent);

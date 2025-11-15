@@ -56,8 +56,12 @@ export class AgentsController {
     },
   ) {
     createAgentDto.cityId = Number(createAgentDto.cityId); 
-
+    createAgentDto.areaId = Number(createAgentDto.areaId); 
+    const byAdmin = req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase();
     if (isNaN(createAgentDto.cityId)) {
+      throw new BadRequestException('cityId must be a number');
+    }
+    if (isNaN(createAgentDto.areaId)) {
       throw new BadRequestException('cityId must be a number');
     }
     if (
@@ -87,7 +91,7 @@ export class AgentsController {
         'identityProof or residencyDocument is missing (send as URL or file)',
       );
     }
-    return this.agentsService.create(createAgentDto);
+    return this.agentsService.create(createAgentDto,byAdmin);
   }
   @Get("dashboard")
   @Roles(UserType.AGENT)

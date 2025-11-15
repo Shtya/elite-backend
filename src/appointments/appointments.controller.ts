@@ -4,7 +4,7 @@ import { CreateAppointmentDto, UpdateAppointmentDto, AssignAgentDto, UpdateStatu
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserType } from 'entities/global.entity';
+import { AgentAppointmentRequestStatus, UserType } from 'entities/global.entity';
 import { CRUD } from 'common/crud.service';
 
 interface RequestWithUser extends Request {
@@ -87,7 +87,25 @@ export class AppointmentsController {
       records,
     };
   }
-  
+  @Get("agent")
+@Roles(UserType.AGENT)
+async getAgentAppointments(@Req() req: RequestWithUser) {
+  return this.appointmentsService.getAgentAppointments(+req.user.id);
+}
+@Patch("requests/:requestId")
+@Roles(UserType.AGENT)
+async respondToRequest(
+  @Param("requestId") requestId: number,
+  @Body("status") status: AgentAppointmentRequestStatus,
+  @Req() req: RequestWithUser
+) {
+  return this.appointmentsService.respondToAppointmentRequest(
+    requestId,
+    req.user.id,
+    status
+  );
+}
+
   @Get(':id')
   @Roles(UserType.ADMIN, UserType.AGENT, UserType.CUSTOMER, UserType.QUALITY)
   findOne(@Param('id') id: string) {
@@ -174,4 +192,6 @@ export class AppointmentsController {
       records,
     };
   }
+
+  
   }

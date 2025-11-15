@@ -167,17 +167,13 @@ export class AuthService {
     password,
   }: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
     // Temporary debug logs to help diagnose production login issues (remove after debugging)
-    this.logger.debug(`[login] attempt for email=${email}`);
     const user = await this.usersRepository.findOne({ where: { email } });
-    this.logger.debug(`[login] user found=${!!user}`);
 
     if (!user || !user.passwordHash) {
-      this.logger.debug("[login] missing user or passwordHash");
       throw new UnauthorizedException("Invalid credentials");
     }
 
     const ok = await bcrypt.compare(password, user.passwordHash);
-    this.logger.debug(`[login] bcrypt match=${ok}`);
     if (!ok) {
       throw new UnauthorizedException("Invalid credentials");
     }

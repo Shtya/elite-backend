@@ -1,27 +1,36 @@
 import { IsNotEmpty, IsNumber, IsEnum, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
 import { AgentApprovalStatus } from '../entities/global.entity';
 
 export class CreateAgentDto {
   @IsNumber()
   @IsOptional()
+  @Type(() => Number)
   userId?: number;
 
   @IsNotEmpty()
   @IsNumber()
+  @Type(() => Number)
   cityId: number;
 
   @IsOptional()
   @IsString()
-  identityProof: string; 
+  identityProof: string;
 
   @IsOptional()
   @IsString()
   residencyDocument?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  areaId?: number;
 }
 
 export class UpdateAgentDto {
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   cityId?: number;
 
   @IsOptional()
@@ -57,13 +66,16 @@ export class AgentQueryDto {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   cityId?: number;
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   page?: number;
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   limit?: number;
 }

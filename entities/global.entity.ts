@@ -14,7 +14,12 @@ import {
   RelationId,
   BaseEntity,
 } from "typeorm";
-
+export enum AgentAppointmentRequestStatus {
+  PENDING = "pending",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
+  EXPIRED = "expired",
+}
 /* ===================== Core / Base ===================== */
 export abstract class CoreEntity extends BaseEntity {
   @PrimaryGeneratedColumn("increment")
@@ -109,6 +114,7 @@ export enum AppointmentStatus {
   COMPLETED = "completed",
   CANCELLED = "cancelled",
   NO_SHOW = "no_show",
+  ACCEPTED = "ACCEPTED",
 }
 
 export enum CreatedChannel {
@@ -380,47 +386,7 @@ export class City extends CoreEntity {
   isActive: boolean;
 }
 
-@Entity("agents")
-@Unique("UQ_agents_user", ["user"])
-export class Agent extends CoreEntity {
-  @OneToOne(() => User, { eager: true })
-  @JoinColumn({ name: "user_id" })
-  user: User;
 
-  @ManyToOne(() => City, { eager: true })
-  @JoinColumn({ name: "city_id" })
-  city: City;
-
-  @Column({
-    name: "identity_proof_url",
-    type: "varchar",
-    length: 500,
-    nullable: true,
-  })
-  identityProofUrl: string;
-
-  @Column({
-    name: "residency_document_url",
-    type: "varchar",
-    length: 500,
-    nullable: true,
-  })
-  residencyDocumentUrl: string;
-
-  @Column({
-    type: "enum",
-    enum: AgentApprovalStatus,
-    default: AgentApprovalStatus.PENDING,
-  })
-  status: AgentApprovalStatus;
-
-  @Column({ name: "kyc_notes", type: "varchar", length: 1000, nullable: true })
-  kycNotes?: string | null;
-
-  @ManyToOne(() => User, { nullable: true })
-  @JoinColumn({ name: "updated_by" })
-  updatedBy?: User | null;
-}
 
 /* ===================== Campaigns & Messaging ===================== */
 @Entity("campaigns")
@@ -766,7 +732,51 @@ export class Area extends CoreEntity {
   @Column({ name: "is_active", type: "boolean", default: false })
   isActive: boolean;
 }
+@Entity("agents")
+@Unique("UQ_agents_user", ["user"])
+export class Agent extends CoreEntity {
+  @OneToOne(() => User, { eager: true })
+  @JoinColumn({ name: "user_id" })
+  user: User;
 
+  @ManyToOne(() => City, { eager: true })
+  @JoinColumn({ name: "city_id" })
+  city: City;
+  @ManyToOne(() => Area, { eager: true, onDelete: "SET NULL", nullable: true })
+  @JoinColumn({ name: "area_id" })
+  area: Area;
+  @RelationId((p: Property) => p.area)
+  areaId: number;
+  @Column({
+    name: "identity_proof_url",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
+  identityProofUrl: string;
+
+  @Column({
+    name: "residency_document_url",
+    type: "varchar",
+    length: 500,
+    nullable: true,
+  })
+  residencyDocumentUrl: string;
+
+  @Column({
+    type: "enum",
+    enum: AgentApprovalStatus,
+    default: AgentApprovalStatus.PENDING,
+  })
+  status: AgentApprovalStatus;
+
+  @Column({ name: "kyc_notes", type: "varchar", length: 1000, nullable: true })
+  kycNotes?: string | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: "updated_by" })
+  updatedBy?: User | null;
+}
 @Entity("property_types")
 export class PropertyType extends CoreEntity {
   @Column({ type: "varchar", length: 100 })
@@ -1069,7 +1079,12 @@ export class Appointment extends CoreEntity {
     nullable: true,
   })
   agentNotes?: string | null;
-
+  @OneToMany(
+    () => AgentAppointmentRequest,
+    (req) => req.appointment,
+    { cascade: true }
+  )
+  agentRequests: AgentAppointmentRequest[];
   @Column({
     name: "created_channel",
     type: "enum",
@@ -1077,6 +1092,31 @@ export class Appointment extends CoreEntity {
     default: CreatedChannel.WEB,
   })
   createdChannel: CreatedChannel;
+}
+
+@Entity("agent_appointment_requests")
+@Unique("UQ_agent_appointment", ["agent", "appointment", "respondedAt"])
+export class AgentAppointmentRequest extends CoreEntity {
+  @ManyToOne(() => Appointment, (a) => a.agentRequests, {
+    eager: true,
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "appointment_id" })
+  appointment: Appointment;
+
+  @ManyToOne(() => User, { eager: true, onDelete: "CASCADE" })
+  @JoinColumn({ name: "agent_id" })
+  agent: User;
+
+  @Column({
+    type: "enum",
+    enum: AgentAppointmentRequestStatus,
+    default: AgentAppointmentRequestStatus.PENDING,
+  })
+  status: AgentAppointmentRequestStatus;
+
+  @Column({ type: "timestamptz", nullable: true })
+  respondedAt?: Date;
 }
 
 @Entity("appointment_status_history")
