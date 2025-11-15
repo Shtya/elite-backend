@@ -229,34 +229,70 @@ export class AppointmentsService {
   
     return request;
   }
+  async getAgentAppointments(
+    agentId: number,
+    page: number = 1,
+    limit: number = 10,
+    pendingPage: number = 1,
+    pendingLimit: number = 10
+  ) {
+    const agent = await this.agentRepository.findOne({
+      where: { user: { id: agentId } },
+    });
   
-  async getAgentAppointments(agentId: number) {
-    const agent = await this.agentRepository.findOne({ where: { user:{id: agentId }} });
-
     if (!agent) {
       throw new NotFoundException("Agent not found");
     }
-    const appointments = await this.appointmentsRepository.find({
-      where: [
-        { agent:{id:agent.id} },                 // confirmed appointments
-      ],
-      relations: ["property", "customer"],
-      order: { appointmentDate: "ASC", startTime: "ASC" },
-    });
   
-    const pendingRequests = await this.agentAppointmentRequestRepository.find({
-      where: {
-        agent: { id: agent.id },
-        status: AgentAppointmentRequestStatus.PENDING,
-      },
-      relations: ["appointment", "appointment.property", "appointment.customer"],
-    });
+    const skip = (page - 1) * limit;
+    const pendingSkip = (pendingPage - 1) * pendingLimit;
+  
+    // ---- Confirmed Appointments (Paginated) ----
+    const [appointments, totalAppointments] =
+      await this.appointmentsRepository.findAndCount({
+        where: [
+          { agent: { id: agent.id } },
+        ],
+        relations: ["property", "customer"],
+        order: { appointmentDate: "ASC", startTime: "ASC" },
+        skip,
+        take: limit,
+      });
+  
+    // ---- Pending Requests (Paginated) ----
+    const [pendingRequests, totalPending] =
+      await this.agentAppointmentRequestRepository.findAndCount({
+        where: {
+          agent: { id: agent.id },
+          status: AgentAppointmentRequestStatus.PENDING,
+        },
+        relations: [
+          "appointment",
+          "appointment.property",
+          "appointment.customer",
+        ],
+        skip: pendingSkip,
+        take: pendingLimit,
+      });
   
     return {
-      confirmedAppointments: appointments,
-      pendingRequests,
+      confirmed: {
+        data: appointments,
+        page,
+        limit,
+        total: totalAppointments,
+        totalPages: Math.ceil(totalAppointments / limit),
+      },
+      pending: {
+        data: pendingRequests,
+        page: pendingPage,
+        limit: pendingLimit,
+        total: totalPending,
+        totalPages: Math.ceil(totalPending / pendingLimit),
+      },
     };
   }
+  
   
   async findOne(id: number): Promise<Appointment> {
     const appointment = await this.appointmentsRepository.findOne({
