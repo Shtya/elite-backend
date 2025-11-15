@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, In } from 'typeorm';
 import { Appointment, AppointmentStatusHistory, AppointmentStatus, User, Property, NotificationType, NotificationChannel, UserType, AgentAppointmentRequest, Agent, AgentAppointmentRequestStatus } from 'entities/global.entity';
 import { CreateAppointmentDto, UpdateAppointmentDto, UpdateStatusDto, AppointmentQueryDto } from '../../dto/appointments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -145,31 +145,52 @@ export class AppointmentsService {
       where: { id: requestId },
       relations: ["appointment", "agent"],
     });
+    const agents = await this.agentRepository.findOne({ where: { user: { id: agentId } } });
   
     if (!request) throw new NotFoundException("Request not found");
   
-    if (request.agent.id !== agentId) {
-      throw new ForbiddenException("Access denied");
+    if (request.agent.id !== agents.id) {
+      throw new ForbiddenException("You don't have access to this request");
     }
   
     if (request.status !== AgentAppointmentRequestStatus.PENDING) {
       throw new BadRequestException("Request has already been processed");
     }
   
-    request.status = status;
-    request.respondedAt = new Date();
-    await this.agentAppointmentRequestRepository.save(request);
-  
     const appointment = request.appointment;
   
-    // ✔ If agent ACCEPTS
+    // Helper to combine date and time
+
+  
+    const startDateTime = this.combineDateTime(appointment.appointmentDate, appointment.startTime);
+    const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
+  
+    // ✔ Check for overlapping appointments if agent ACCEPTS
     if (status === AgentAppointmentRequestStatus.ACCEPTED) {
-      // Assign agent to appointment
+      const agentAppointments = await this.appointmentsRepository.find({
+        where: {
+          agent: { id: agentId },
+          status: In([AppointmentStatus.CONFIRMED, AppointmentStatus.ACCEPTED]),
+        },
+      });
+  
+      for (const appt of agentAppointments) {
+        const existingStart = this.combineDateTime(appt.appointmentDate, appt.startTime);
+        const existingEnd = this.combineDateTime(appt.appointmentDate, appt.endTime);
+  
+        if (startDateTime < existingEnd && endDateTime > existingStart) {
+          throw new ConflictException(
+            `You already have another appointment at this time: ${appt.appointmentDate} ${appt.startTime}-${appt.endTime}`
+          );
+        }
+      }
+  
+      // Assign agent and update appointment
       appointment.agent = request.agent;
       appointment.status = AppointmentStatus.CONFIRMED;
       await this.appointmentsRepository.save(appointment);
   
-      // Reject all other pending requests
+      // Reject all other pending requests for this appointment
       await this.agentAppointmentRequestRepository.update(
         {
           appointment: { id: appointment.id },
@@ -201,8 +222,14 @@ export class AppointmentsService {
       });
     }
   
+    // Update request status and respondedAt
+    request.status = status;
+    request.respondedAt = new Date();
+    await this.agentAppointmentRequestRepository.save(request);
+  
     return request;
   }
+  
   async getAgentAppointments(agentId: number) {
     const agent = await this.agentRepository.findOne({ where: { user:{id: agentId }} });
 
