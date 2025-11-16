@@ -617,8 +617,8 @@ export class ReferralPartner extends CoreEntity {
   @ManyToOne(() => User, (user) => user.referralPartners, { eager: true, nullable: true })
   @JoinColumn({ name: "user_id" })
   user: User;
-
-  @Column({ name: "is_active", type: "boolean", default: true })
+  @Column({ name: "user_id", nullable: true })
+  userId: string;  @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;
   @Column({ type: 'text', nullable: true })
 shareUrl?: string;
