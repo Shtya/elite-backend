@@ -102,35 +102,36 @@ export class AgentsController {
 
 
   @Get()
-@Roles(UserType.ADMIN, UserType.QUALITY, UserType.AGENT)
-async findAll(@Query() query: any) {
-  const repository = this.agentsService.agentsRepository;
-  const page = Number(query.page) || 1;
-  const limit = Number(query.limit) || 10;
-  const skip = (page - 1) * limit;
-
-  const qb = repository.createQueryBuilder('agent')
-    .leftJoinAndSelect('agent.user', 'agent_user')
-    .leftJoinAndSelect('agent.city', 'city')
-    .skip(skip)
-    .take(limit)
-    .orderBy('agent.createdAt', 'DESC');
-
-  // Filters
-  if (query.status) qb.andWhere('agent.status = :status', { status: query.status });
-  if (query.cityId) qb.andWhere('city.id = :cityId', { cityId: Number(query.cityId) });
-
-  // Only users of type AGENT
-
-  const [records, total] = await qb.getManyAndCount();
-
-  return {
-    total_records: total,
-    current_page: page,
-    per_page: limit,
-    records,
-  };
-}
+  @Roles(UserType.ADMIN, UserType.QUALITY, UserType.AGENT)
+  async findAll(@Query() query: any) {
+    const repository = this.agentsService.agentsRepository;
+    const page = Number(query.page) || 1;
+    const limit = Number(query.limit) || 10;
+    const skip = (page - 1) * limit;
+  
+    const qb = repository.createQueryBuilder('agent')
+      .leftJoinAndSelect('agent.user', 'agent_user')
+      .leftJoinAndSelect('agent.cities', 'city') // join cities
+      .leftJoinAndSelect('agent.areas', 'area')  // join areas with a DIFFERENT alias
+      .skip(skip)
+      .take(limit)
+      .orderBy('agent.createdAt', 'DESC');
+  
+    // Filters
+    if (query.status) qb.andWhere('agent.status = :status', { status: query.status });
+    if (query.cityId) qb.andWhere('city.id = :cityId', { cityId: Number(query.cityId) });
+    if (query.areaId) qb.andWhere('area.id = :areaId', { areaId: Number(query.areaId) });
+  
+    const [records, total] = await qb.getManyAndCount();
+  
+    return {
+      total_records: total,
+      current_page: page,
+      per_page: limit,
+      records,
+    };
+  }
+  
 
   
 

@@ -128,7 +128,7 @@ export enum CreatedChannel {
 }
 
 export enum ConversionType {
-  LOGIN = "login",
+  REGISTRATION = "registration",
   APPOINTMENT = "appointment",
 }
 
