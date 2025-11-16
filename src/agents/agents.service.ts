@@ -102,7 +102,7 @@ export class AgentsService {
   async findOne(id: number): Promise<Agent> {
     const agent = await this.agentsRepository.findOne({
       where: { id },
-      relations: ['user', 'city', 'updatedBy'],
+      relations: ['user', 'cities','areas', 'updatedBy'],
     });
 
     if (!agent) {
