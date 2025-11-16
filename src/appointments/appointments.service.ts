@@ -503,7 +503,7 @@ export class AppointmentsService {
     // 3️⃣ Find accepted agent request
     const request = await this.agentAppointmentRequestRepository.findOne({
       where: {
-        appointment: { id: appointment.id },
+        id:appointmentId,
         status: AppointmentStatus.ACCEPTED,
       },
     });
