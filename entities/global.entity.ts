@@ -118,8 +118,8 @@ export enum AppointmentStatus {
   CANCELLED = "cancelled",
   NO_SHOW = "no_show",
   EXPIRED = 'expired',
-  ACCEPTED = "ACCEPTED",
-  REJECTED = "REJECTED",
+  ACCEPTED = "accepted",
+  REJECTED = "rejected",
 }
 
 export enum CreatedChannel {

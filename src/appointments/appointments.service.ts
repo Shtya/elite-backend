@@ -491,14 +491,14 @@ export class AppointmentsService {
     const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
     const oldStatus = appointment.status;
   
-    // 2️⃣ Validate status transition rules
-    if (status === AppointmentStatus.COMPLETED && now < endDateTime) {
-      throw new BadRequestException(`Cannot mark as completed before ${appointment.endTime}.`);
-    }
+    // // 2️⃣ Validate status transition rules
+    // if (status === AppointmentStatus.COMPLETED && now < endDateTime) {
+    //   throw new BadRequestException(`Cannot mark as completed before ${appointment.endTime}.`);
+    // }
   
-    if (status === AppointmentStatus.EXPIRED && now < startDateTime) {
-      throw new BadRequestException('Cannot mark as expired before the appointment start time.');
-    }
+    // if (status === AppointmentStatus.EXPIRED && now < startDateTime) {
+    //   throw new BadRequestException('Cannot mark as expired before the appointment start time.');
+    // }
   
     // 3️⃣ Find accepted agent request
     const request = await this.agentAppointmentRequestRepository.findOne({
