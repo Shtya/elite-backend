@@ -108,7 +108,7 @@ export class AppointmentsService {
       const request = this.agentAppointmentRequestRepository.create({
         appointment: savedAppointment,
         agent,
-        status: AgentAppointmentRequestStatus.PENDING,
+        status: AppointmentStatus.PENDING,
       });
   
       await this.agentAppointmentRequestRepository.save(request);
@@ -151,7 +151,7 @@ export class AppointmentsService {
   async respondToAppointmentRequest(
     requestId: number,
     agentId: number,
-    status: AgentAppointmentRequestStatus,
+    status: AppointmentStatus,
     notes?: string
   ) {
     const request = await this.agentAppointmentRequestRepository.findOne({
@@ -171,7 +171,7 @@ export class AppointmentsService {
       throw new ForbiddenException("You don't have access to this request");
     }
   
-    if (request.status === AgentAppointmentRequestStatus.ACCEPTED) {
+    if (request.status === AppointmentStatus.ACCEPTED) {
       throw new BadRequestException("Request has already been processed");
     }
   
@@ -184,7 +184,7 @@ export class AppointmentsService {
     // -----------------------------
     // ✔ If ACCEPTING → check overlap
     // -----------------------------
-    if (status === AgentAppointmentRequestStatus.ACCEPTED) {
+    if (status === AppointmentStatus.ACCEPTED) {
       const agentAppointments = await this.appointmentsRepository.find({
         where: {
           agent: { id: agentId },
@@ -213,10 +213,10 @@ export class AppointmentsService {
       await this.agentAppointmentRequestRepository.update(
         {
           appointment: { id: appointment.id },
-          status: AgentAppointmentRequestStatus.PENDING,
+          status: AppointmentStatus.PENDING,
         },
         {
-          status: AgentAppointmentRequestStatus.REJECTED,
+          status: AppointmentStatus.REJECTED,
           respondedAt: new Date(),
         }
       );
@@ -318,7 +318,7 @@ export class AppointmentsService {
       await this.agentAppointmentRequestRepository.findAndCount({
         where: [
           { agent: { id: agent.id }
-, status: AgentAppointmentRequestStatus.ACCEPTED
+, status: AppointmentStatus.ACCEPTED
         },
         ],
         relations: ["appointment"],
@@ -331,7 +331,7 @@ export class AppointmentsService {
       await this.agentAppointmentRequestRepository.findAndCount({
         where: {
           agent: { id: agent.id },
-          status: AgentAppointmentRequestStatus.PENDING,
+          status: AppointmentStatus.PENDING,
         },
         relations: [
           "appointment",
@@ -476,49 +476,61 @@ export class AppointmentsService {
   async updateAppointmentFinalStatus(
     appointmentId: number,
     status: AppointmentStatus,   // "completed" | "expired"
+    changedBy: User,             // pass the logged-in user here
     notes?: string
   ): Promise<Appointment> {
   
+    // 1️⃣ Fetch appointment
     const appointment = await this.findOne(appointmentId);
-    const now = new Date();
+    if (!appointment) {
+      throw new NotFoundException('Appointment not found.');
+    }
   
+    const now = new Date();
     const startDateTime = this.combineDateTime(appointment.appointmentDate, appointment.startTime);
     const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
-  
-    // ---------------------------
-    // ❌ Prevent early status update
-    // ---------------------------
-    if (status === AppointmentStatus.COMPLETED) {
-      if (now < endDateTime) {
-        throw new BadRequestException(
-          `You cannot mark this appointment as completed before ${appointment.endTime}.`
-        );
-      }
-    }
-  
-    if (status === AppointmentStatus.EXPIRED) {
-      if (now < startDateTime) {
-        throw new BadRequestException(
-          `You cannot mark this appointment as expired before its start time.`
-        );
-      }
-    }
-  
     const oldStatus = appointment.status;
+  
+    // 2️⃣ Validate status transition rules
+    if (status === AppointmentStatus.COMPLETED && now < endDateTime) {
+      throw new BadRequestException(`Cannot mark as completed before ${appointment.endTime}.`);
+    }
+  
+    if (status === AppointmentStatus.EXPIRED && now < startDateTime) {
+      throw new BadRequestException('Cannot mark as expired before the appointment start time.');
+    }
+  
+    // 3️⃣ Find accepted agent request
+    const request = await this.agentAppointmentRequestRepository.findOne({
+      where: {
+        appointment: { id: appointment.id },
+        status: AppointmentStatus.ACCEPTED,
+      },
+    });
+  
+    if (!request) {
+      throw new NotFoundException('No accepted agent request found for this appointment.');
+    }
+  
+    // 4️⃣ Update statuses
     appointment.status = status;
- 
+    request.status = status;
+  
+    // Save both appointment and request atomically
+    await this.agentAppointmentRequestRepository.save(request);
+    await this.appointmentsRepository.save(appointment);
+  
+    // 5️⃣ Save status history
     const statusHistory = this.statusHistoryRepository.create({
       appointment,
       oldStatus,
       newStatus: status,
-      changedBy: { id: 1 } as User, // TODO: replace with real logged-in user
+      changedBy,
       notes,
     });
     await this.statusHistoryRepository.save(statusHistory);
   
-    // ---------------------------
-    // ✔ Notifications
-    // ---------------------------
+    // 6️⃣ Send notifications
     const statusMessages = {
       completed: 'Your appointment has been marked as completed.',
       expired: 'Your appointment has expired.',
@@ -527,7 +539,7 @@ export class AppointmentsService {
     await this.notificationsService.createNotification({
       userId: appointment.customer.id,
       type: NotificationType.APPOINTMENT_REMINDER,
-      title: "Appointment Status Updated",
+      title: 'Appointment Status Updated',
       message: statusMessages[status],
       relatedId: appointment.id,
       channel: NotificationChannel.IN_APP,
@@ -537,14 +549,15 @@ export class AppointmentsService {
       await this.notificationsService.createNotification({
         userId: appointment.agent.id,
         type: NotificationType.APPOINTMENT_REMINDER,
-        title: "Appointment Status Updated",
+        title: 'Appointment Status Updated',
         message: statusMessages[status],
         relatedId: appointment.id,
         channel: NotificationChannel.IN_APP,
       });
     }
   
-    return this.appointmentsRepository.save(appointment);
+    return appointment;
   }
+  
   
 }

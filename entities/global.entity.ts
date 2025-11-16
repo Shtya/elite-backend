@@ -21,6 +21,7 @@ export enum AgentAppointmentRequestStatus {
   ACCEPTED = "accepted",
   REJECTED = "rejected",
   EXPIRED = "expired",
+  CONFIRMED = 'confirmed'
 }
 /* ===================== Core / Base ===================== */
 export abstract class CoreEntity extends BaseEntity {
@@ -118,6 +119,7 @@ export enum AppointmentStatus {
   NO_SHOW = "no_show",
   EXPIRED = 'expired',
   ACCEPTED = "ACCEPTED",
+  REJECTED = "REJECTED",
 }
 
 export enum CreatedChannel {
@@ -1134,10 +1136,10 @@ export class AgentAppointmentRequest extends CoreEntity {
 
   @Column({
     type: "enum",
-    enum: AgentAppointmentRequestStatus,
-    default: AgentAppointmentRequestStatus.PENDING,
+    enum: AppointmentStatus,
+    default: AppointmentStatus.PENDING,
   })
-  status: AgentAppointmentRequestStatus;
+  status: AppointmentStatus;
 
   @Column({ type: "timestamptz", nullable: true })
   respondedAt?: Date;
