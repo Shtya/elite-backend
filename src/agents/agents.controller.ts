@@ -27,6 +27,7 @@ import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
 import { UserType } from "entities/global.entity";
 import { CRUD } from "common/crud.service";
+import { RegisterDto } from "dto/auth.dto";
 interface RequestWithUser extends Request {
   user: any;
 }
@@ -172,6 +173,34 @@ async findAll(@Query() query: any) {
   @Roles(UserType.ADMIN)
   remove(@Param("id") id: string) {
     return this.agentsService.remove(+id);
+  }
+  @Post('register')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'identityProof', maxCount: 1 },
+      { name: 'residencyDocument', maxCount: 1 },
+    ]),
+  )
+  async registerAgent(
+    @Body() registerDto: RegisterDto & { cityIds: number[]; areaIds?: number[] },
+    @UploadedFiles()
+    files?: {
+      identityProof?: Express.Multer.File[];
+      residencyDocument?: Express.Multer.File[];
+    },
+  ) {
+    // Validate that at least one city is provided
+    if (!registerDto.cityIds || !Array.isArray(registerDto.cityIds) || registerDto.cityIds.length === 0) {
+      throw new BadRequestException('cityIds must be a non-empty array of numbers');
+    }
+
+    // Ensure all cityIds and areaIds are numbers
+    registerDto.cityIds = registerDto.cityIds.map(Number);
+    if (registerDto.areaIds) {
+      registerDto.areaIds = registerDto.areaIds.map(Number);
+    }
+
+    return this.agentsService.registerAgent(registerDto, files);
   }
 
   @Post(":id/approve")

@@ -89,6 +89,10 @@ export class CreatePropertyDto {
   @IsOptional()
   @IsString()
   mapPlaceId?: string;
+
+  @IsNumber()
+  @Type(() => Number)
+  agentsPercentage?: number;
 }
 export class UpdatePropertyDto {
   @IsOptional()
@@ -181,6 +185,12 @@ export class UpdatePropertyDto {
   @IsBoolean()
   @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  agentsPercentage?: number;
+
 }
 
 export class PropertyQueryDto {

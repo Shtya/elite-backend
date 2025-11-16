@@ -41,7 +41,7 @@ export class AppointmentsService {
   
     const property = await this.propertiesRepository.findOne({
       where: { id: createAppointmentDto.propertyId },
-      relations: ["area"],
+      relations: ["area", "city"],
     });
     if (!property) throw new NotFoundException("Property not found");
   
@@ -72,12 +72,12 @@ export class AppointmentsService {
       );
     }
   
-    // 4. Get all agents in the same area
-    const areaAgents = await this.agentRepository.find({
-      where: { areas: { id: property.area.id } },
+    // 4. Get all agents
+    const agents = await this.agentRepository.find({
+      relations: ["cities", "areas", "user"],
     });
-    if (areaAgents.length === 0) {
-      throw new NotFoundException("No agents available in this area");
+    if (agents.length === 0) {
+      throw new NotFoundException("No agents found.");
     }
   
     // 5. Create the appointment (status: PENDING)
@@ -92,17 +92,29 @@ export class AppointmentsService {
     const savedAppointment = await this.appointmentsRepository.save(appointment);
   
     // 6. Create agent requests & send notifications
-    for (const agent of areaAgents) {
+    for (const agent of agents) {
+      let shouldSendRequest = false;
+  
+      if (agent.cities.length > 1) {
+        // Multiple cities → match property city
+        shouldSendRequest = agent.cities.some(city => city.id === property.city.id);
+      } else if (agent.cities.length === 1) {
+        // Single city → match property area
+        shouldSendRequest = agent.areas.some(area => area.id === property.area.id);
+      }
+  
+      if (!shouldSendRequest) continue;
+  
       const request = this.agentAppointmentRequestRepository.create({
         appointment: savedAppointment,
-        agent: agent.user.id ? agent : await this.usersRepository.findOne({ where: { id: agent.user.id } }),
+        agent,
         status: AgentAppointmentRequestStatus.PENDING,
       });
   
       await this.agentAppointmentRequestRepository.save(request);
   
       await this.notificationsService.createNotification({
-        userId: agent.id,
+        userId: agent.user.id,
         type: NotificationType.SYSTEM,
         title: "New Appointment Request",
         message: "A customer wants to visit a property in your area. Please accept or reject the request.",

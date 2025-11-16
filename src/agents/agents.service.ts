@@ -1,9 +1,11 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType } from 'entities/global.entity';
+import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType, VerificationStatus } from 'entities/global.entity';
 import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import bcrypt from 'bcryptjs/umd/types';
+import { RegisterDto } from 'dto/auth.dto';
 
 @Injectable()
 export class AgentsService {
@@ -218,4 +220,89 @@ async getDashboard(agentId: number) {
     recentAppointments,
   };
 }
+
+async registerAgent(
+  registerDto: RegisterDto & { cityIds: number[]; areaIds?: number[] },
+  files?: {
+    identityProof?: Express.Multer.File[];
+    residencyDocument?: Express.Multer.File[];
+  },
+): Promise<{ message: string }> {
+  // 1️⃣ Check if user exists
+  const existingUser = await this.usersRepository.findOne({
+    where: [
+      { email: registerDto.email },
+      ...(registerDto.phoneNumber ? [{ phoneNumber: registerDto.phoneNumber }] : []),
+    ],
+  });
+
+  if (existingUser) {
+    throw new ConflictException("User with this email (or phone) already exists");
+  }
+
+  // 2️⃣ Hash password and create user
+  const passwordHash = await bcrypt.hash(registerDto.password, 12);
+  const user = this.usersRepository.create({
+    email: registerDto.email,
+    phoneNumber: registerDto.phoneNumber,
+    fullName: registerDto.fullName,
+    userType: UserType.AGENT,
+    profilePhotoUrl: registerDto.profilePhotoUrl,
+    passwordHash,
+    verificationStatus: VerificationStatus.VERIFIED,
+  });
+  await this.usersRepository.save(user);
+
+
+  // 5️⃣ Notifications for the user
+  await this.notificationsService.createNotification({
+    userId: user.id,
+    type: NotificationType.SYSTEM,
+    title: "Welcome to the Real Estate Platform",
+    message: `Hello ${user.fullName}! Your account has been successfully created as an agent.`,
+    channel: NotificationChannel.IN_APP,
+  });
+
+  // 6️⃣ Notification for admin
+  const adminUsers = await this.usersRepository.find({ where: { userType: UserType.ADMIN } });
+  if (adminUsers.length > 0) {
+    await this.notificationsService.createNotification({
+      userId: adminUsers[0].id,
+      type: NotificationType.SYSTEM,
+      title: "New Agent Registered",
+      message: `A new agent named ${user.fullName} has registered on the platform.`,
+      channel: NotificationChannel.IN_APP,
+    });
+  }
+
+  // 7️⃣ Create Agent entity
+  const agent = this.agentsRepository.create({
+    user,
+    identityProofUrl: files?.identityProof?.[0]
+      ? `/uploads/images/${files.identityProof[0].filename}`
+      : undefined,
+    residencyDocumentUrl: files?.residencyDocument?.[0]
+      ? `/uploads/images/${files.residencyDocument[0].filename}`
+      : undefined,
+  });
+
+  // Fetch cities and areas from DB
+  const cities = await this.cityRepository.findByIds(registerDto.cityIds);
+  if (!cities.length) throw new BadRequestException("Invalid city IDs");
+  agent.cities = cities;
+
+  if (registerDto.areaIds) {
+    if (cities.length === 1) {
+      const areas = await this.areaRepository.findByIds(registerDto.areaIds);
+      agent.areas = areas;
+    } else {
+      agent.areas = []; // can't assign areas if multiple cities
+    }
+  }
+
+  await this.agentsRepository.save(agent);
+
+  return { message: "Agent registered successfully. OTP sent to email." };
+}
+
 }

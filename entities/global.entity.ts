@@ -873,13 +873,15 @@ export class Property extends CoreEntity {
     nullable: true,
   })
   ownerNotes?: string | null;
-
+  @Column({type:"decimal",nullable:true})
+  agentsPercentage?:number|null;
   // NEW: Geo/Maps integration
   @Column({ type: "decimal", precision: 10, scale: 8, nullable: true })
   latitude?: string | null;
 
   @Column({ type: "decimal", precision: 11, scale: 8, nullable: true })
   longitude?: string | null;
+
 
   @Column({
     name: "map_place_id",
@@ -891,6 +893,8 @@ export class Property extends CoreEntity {
 
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;
+
+  
 
   @ManyToOne(() => User, { eager: true })
   @JoinColumn({ name: "created_by" })

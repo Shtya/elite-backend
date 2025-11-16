@@ -36,7 +36,7 @@ export class MailService {
       userType: string;
     },
   ) {
-    const subject = 'Welcome to Our Real Estate Platform';
+    const subject = 'Welcome to Our Real Estate Platform - مرحباً بك في منصة العقارات';
 
     const htmlContent = `
     <!DOCTYPE html>
@@ -124,60 +124,120 @@ export class MailService {
                 margin: 10px 5px;
                 font-weight: bold;
             }
+            .language-section {
+                margin: 20px 0;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            .english { border-right: 4px solid #1e328b; }
+            .arabic { 
+                border-left: 4px solid #2c5aa0; 
+                text-align: right;
+                direction: rtl;
+            }
+            .section-title {
+                font-weight: bold;
+                color: #1e328b;
+                margin-bottom: 10px;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo">🏠 Real Estate Platform</div>
-                <h1>Welcome to Our Family</h1>
+                <div class="logo">🏠 Real Estate Platform - منصة العقارات</div>
+                <h1>Welcome to Our Family - مرحباً بك في عائلتنا</h1>
             </div>
             
-            <div class="welcome-text">
-                Hello ${data.userName} 👋
-            </div>
-            
-            <p>We’re delighted to have you on board! Your account as a <strong>${data.userType}</strong> has been successfully activated.</p>
-            
-            <div class="user-info">
-                <strong>Your Account Details:</strong><br>
-                - Email: ${userEmail}<br>
-                - Account Type: ${data.userType}<br>
-                - Registration Date: ${new Date().toLocaleDateString('en-US')}
+            <!-- English Section -->
+            <div class="language-section english">
+                <div class="section-title">English</div>
+                <div class="welcome-text">
+                    Hello ${data.userName} 👋
+                </div>
+                
+                <p>We're delighted to have you on board! Your account as a <strong>${data.userType}</strong> has been successfully activated.</p>
+                
+                <div class="user-info">
+                    <strong>Your Account Details:</strong><br>
+                    - Email: ${userEmail}<br>
+                    - Account Type: ${data.userType}<br>
+                    - Registration Date: ${new Date().toLocaleDateString('en-US')}
+                </div>
+
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">🔍</div>
+                        <h3>Browse Properties</h3>
+                        <p>Explore thousands of listings that match your preferences.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📅</div>
+                        <h3>Book Appointments</h3>
+                        <p>Schedule property viewings quickly and easily.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🤝</div>
+                        <h3>Trusted Agents</h3>
+                        <p>Work with verified and reliable real estate professionals.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>Secure Service</h3>
+                        <p>Enjoy safe transactions and guaranteed protection.</p>
+                    </div>
+                </div>
             </div>
 
-            <div class="features">
-                <div class="feature">
-                    <div class="feature-icon">🔍</div>
-                    <h3>Browse Properties</h3>
-                    <p>Explore thousands of listings that match your preferences.</p>
+            <!-- Arabic Section -->
+            <div class="language-section arabic">
+                <div class="section-title">العربية</div>
+                <div class="welcome-text">
+                    مرحباً ${data.userName} 👋
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">📅</div>
-                    <h3>Book Appointments</h3>
-                    <p>Schedule property viewings quickly and easily.</p>
+                
+                <p>يسرنا انضمامك إلينا! تم تفعيل حسابك كـ <strong>${this.getArabicUserType(data.userType)}</strong> بنجاح.</p>
+                
+                <div class="user-info">
+                    <strong>تفاصيل حسابك:</strong><br>
+                    - البريد الإلكتروني: ${userEmail}<br>
+                    - نوع الحساب: ${this.getArabicUserType(data.userType)}<br>
+                    - تاريخ التسجيل: ${new Date().toLocaleDateString('ar-SA')}
                 </div>
-                <div class="feature">
-                    <div class="feature-icon">🤝</div>
-                    <h3>Trusted Agents</h3>
-                    <p>Work with verified and reliable real estate professionals.</p>
-                </div>
-                <div class="feature">
-                    <div class="feature-icon">🛡️</div>
-                    <h3>Secure Service</h3>
-                    <p>Enjoy safe transactions and guaranteed protection.</p>
+
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">🔍</div>
+                        <h3>تصفح العقارات</h3>
+                        <p>استكشف الآلاف من العقارات التي تطابق تفضيلاتك.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📅</div>
+                        <h3>حجز المواعيد</h3>
+                        <p>قم بحجز مواعيد معاينة العقارات بسرعة وسهولة.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🤝</div>
+                        <h3>وكلاء موثوقون</h3>
+                        <p>تعامل مع محترفي العقارات الموثوقين والمعتمدين.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🛡️</div>
+                        <h3>خدمة آمنة</h3>
+                        <p>استمتع بمعاملات آمنة وحماية مضمونة.</p>
+                    </div>
                 </div>
             </div>
 
             <div style="text-align: center;">
-                <a href="${process.env.FRONTEND_URL}" class="button">Start Your Journey</a>
+                <a href="${process.env.FRONTEND_URL}" class="button">Start Your Journey - ابدأ رحلتك</a>
             </div>
 
             <div class="footer">
-                <p>If you have any questions, feel free to reach out:</p>
+                <p>If you have any questions, feel free to reach out - إذا كان لديك أي أسئلة، فلا تتردد في التواصل معنا:</p>
                 <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'}</p>
                 <p>✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
-                <p>© 2024 Real Estate Platform. All rights reserved.</p>
+                <p>© 2024 Real Estate Platform. All rights reserved. - © 2024 منصة العقارات. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </body>
@@ -193,18 +253,18 @@ export class MailService {
 
   private getEmailSubject(purpose: string): string {
     const subjects = {
-      registration: 'Verification Code - New Registration',
-      password_reset: 'Password Reset Code',
-      login: 'Login Verification Code',
+      registration: 'Verification Code - New Registration - رمز التحقق - تسجيل جديد',
+      password_reset: 'Password Reset Code - رمز إعادة تعيين كلمة المرور',
+      login: 'Login Verification Code - رمز التحقق لتسجيل الدخول',
     };
-    return subjects[purpose] || 'Verification Code';
+    return subjects[purpose] || 'Verification Code - رمز التحقق';
   }
 
   private generateOtpTemplate(data: { otp: string; userName: string; purpose: 'registration' | 'password_reset' | 'login' }): string {
     const purposeText = {
-      registration: 'Register a New Account',
-      password_reset: 'Reset Your Password',
-      login: 'Login to Your Account',
+      registration: { en: 'Register a New Account', ar: 'تسجيل حساب جديد' },
+      password_reset: { en: 'Reset Your Password', ar: 'إعادة تعيين كلمة المرور' },
+      login: { en: 'Login to Your Account', ar: 'تسجيل الدخول إلى حسابك' },
     };
 
     return `
@@ -277,45 +337,84 @@ export class MailService {
                 font-weight: bold;
                 margin: 10px 0;
             }
+            .language-section {
+                margin: 20px 0;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            .english { border-right: 4px solid #1e328b; }
+            .arabic { 
+                border-left: 4px solid #2c5aa0; 
+                text-align: right;
+                direction: rtl;
+            }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🏠 Real Estate Platform</h1>
-                <p>Secure Verification Code</p>
+                <h1>🏠 Real Estate Platform - منصة العقارات</h1>
+                <p>Secure Verification Code - رمز التحقق الآمن</p>
             </div>
             
-            <p>Dear <strong>${data.userName}</strong>,</p>
-            
-            <div class="purpose-badge">
-                ${purposeText[data.purpose]}
+            <!-- English Section -->
+            <div class="language-section english">
+                <p>Dear <strong>${data.userName}</strong>,</p>
+                
+                <div class="purpose-badge">
+                    ${purposeText[data.purpose].en}
+                </div>
+                
+                <p>Please use the verification code below to complete your request:</p>
+                
+                <div class="otp-code">
+                    ${data.otp}
+                </div>
+                
+                <div class="warning">
+                    ⚠️ <strong>Important:</strong><br>
+                    This code is valid for 10 minutes only.<br>
+                    Do not share this code with anyone.
+                </div>
+                
+                <p>If you did not request this code, please ignore this message.</p>
             </div>
-            
-            <p>Please use the verification code below to complete your request:</p>
-            
-            <div class="otp-code">
-                ${data.otp}
+
+            <!-- Arabic Section -->
+            <div class="language-section arabic">
+                <p>عزيزي <strong>${data.userName}</strong>,</p>
+                
+                <div class="purpose-badge">
+                    ${purposeText[data.purpose].ar}
+                </div>
+                
+                <p>يرجى استخدام رمز التحقق أدناه لإكمال طلبك:</p>
+                
+                <div class="otp-code">
+                    ${data.otp}
+                </div>
+                
+                <div class="warning">
+                    ⚠️ <strong>مهم:</strong><br>
+                    هذا الرمز صالح لمدة 10 دقائق فقط.<br>
+                    لا تشارك هذا الرمز مع أي شخص.
+                </div>
+                
+                <p>إذا لم تطلب هذا الرمز، يرجى تجاهل هذه الرسالة.</p>
             </div>
-            
-            <div class="warning">
-                ⚠️ <strong>Important:</strong><br>
-                This code is valid for 10 minutes only.<br>
-                Do not share this code with anyone.
-            </div>
-            
-            <p>If you did not request this code, please ignore this message.</p>
             
             <div class="footer">
                 <p>Best regards,<br>The Real Estate Platform Team 🏠</p>
+                <p>مع أطيب التحيات,<br>فريق منصة العقارات 🏠</p>
                 <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
-                <p>© 2024 Real Estate Platform. All rights reserved.</p>
+                <p>© 2024 Real Estate Platform. All rights reserved. - © 2024 منصة العقارات. جميع الحقوق محفوظة.</p>
             </div>
         </div>
     </body>
     </html>
     `;
   }
+
   generateApprovalTemplate(email: string, p0: string, data: { userName: string; propertyTitle: string; requestId: number; }) {
     return `
     <!DOCTYPE html>
@@ -366,27 +465,52 @@ export class MailService {
           margin: 20px 0;
           font-weight: bold;
         }
+        .language-section {
+          margin: 20px 0;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .english { border-right: 4px solid #1e328b; }
+        .arabic { 
+          border-left: 4px solid #2c5aa0; 
+          text-align: right;
+          direction: rtl;
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🏠 Listing Approved</h1>
+          <h1>🏠 Listing Approved - تم الموافقة على القائمة</h1>
         </div>
-        <p>Dear <strong>${data.userName}</strong>,</p>
-        <p>Good news! Your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:green;font-weight:bold;">approved</span> after inspection.</p>
-        <p>You can now proceed to publish your property or review the details on your dashboard.</p>
+        
+        <!-- English Section -->
+        <div class="language-section english">
+          <p>Dear <strong>${data.userName}</strong>,</p>
+          <p>Good news! Your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:green;font-weight:bold;">approved</span> after inspection.</p>
+          <p>You can now proceed to publish your property or review the details on your dashboard.</p>
+        </div>
+
+        <!-- Arabic Section -->
+        <div class="language-section arabic">
+          <p>عزيزي <strong>${data.userName}</strong>,</p>
+          <p>أخبار سعيدة! تم <span style="color:green;font-weight:bold;">الموافقة</span> على طلب قائمة العقار الخاص بك <strong>#${data.requestId}</strong> للملكية <strong>${data.propertyTitle}</strong> بعد التفتيش.</p>
+          <p>يمكنك الآن المتابعة لنشر عقارك أو مراجعة التفاصيل في لوحة التحكم.</p>
+        </div>
+
         <div style="text-align:center;">
-          <a href="${process.env.FRONTEND_URL}/dashboard/listings/${data.requestId}" class="button">View Listing</a>
+          <a href="${process.env.FRONTEND_URL}/dashboard/listings/${data.requestId}" class="button">View Listing - عرض القائمة</a>
         </div>
+
         <div class="footer">
           <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
-          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+          <p>© 2024 Real Estate Platform. All rights reserved. - © 2024 منصة العقارات. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </body>
     </html>`;
   }
+
   generateRejectionTemplate(email: string, p0: string, p1: { userName: string; propertyTitle: any; requestId: number; }, data: { userName: string; propertyTitle: string; reason: string; requestId: number; }) {
     return `
     <!DOCTYPE html>
@@ -434,27 +558,54 @@ export class MailService {
           color: #666;
           font-size: 14px;
         }
+        .language-section {
+          margin: 20px 0;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .english { border-right: 4px solid #a83232; }
+        .arabic { 
+          border-left: 4px solid #c94b4b; 
+          text-align: right;
+          direction: rtl;
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>❌ Listing Request Rejected</h1>
+          <h1>❌ Listing Request Rejected - تم رفض طلب القائمة</h1>
         </div>
-        <p>Dear <strong>${data.userName}</strong>,</p>
-        <p>We regret to inform you that your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:red;font-weight:bold;">rejected</span>.</p>
-        <div class="reason">
-          <strong>Reason:</strong><br>${data.reason}
+        
+        <!-- English Section -->
+        <div class="language-section english">
+          <p>Dear <strong>${data.userName}</strong>,</p>
+          <p>We regret to inform you that your property listing request <strong>#${data.requestId}</strong> for <strong>${data.propertyTitle}</strong> has been <span style="color:red;font-weight:bold;">rejected</span>.</p>
+          <div class="reason">
+            <strong>Reason:</strong><br>${data.reason}
+          </div>
+          <p>You may review your submission and make the necessary corrections before resubmitting.</p>
         </div>
-        <p>You may review your submission and make the necessary corrections before resubmitting.</p>
+
+        <!-- Arabic Section -->
+        <div class="language-section arabic">
+          <p>عزيزي <strong>${data.userName}</strong>,</p>
+          <p>نأسف لإبلاغك بأن طلب قائمة العقار الخاص بك <strong>#${data.requestId}</strong> للملكية <strong>${data.propertyTitle}</strong> قد تم <span style="color:red;font-weight:bold;">رفضه</span>.</p>
+          <div class="reason">
+            <strong>السبب:</strong><br>${data.reason}
+          </div>
+          <p>يمكنك مراجعة طلبك وإجراء التصحيحات اللازمة قبل إعادة الإرسال.</p>
+        </div>
+
         <div class="footer">
           <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
-          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+          <p>© 2024 Real Estate Platform. All rights reserved. - © 2024 منصة العقارات. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </body>
     </html>`;
   }
+
   generatePublishTemplate(data: { userName: string; propertyTitle: string; propertyUrl: string }) {
     return `
     <!DOCTYPE html>
@@ -505,28 +656,61 @@ export class MailService {
           margin: 20px 0;
           font-weight: bold;
         }
+        .language-section {
+          margin: 20px 0;
+          padding: 15px;
+          border-radius: 8px;
+        }
+        .english { border-right: 4px solid #1e8b42; }
+        .arabic { 
+          border-left: 4px solid #2ca04e; 
+          text-align: right;
+          direction: rtl;
+        }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>✅ Listing Published Successfully</h1>
+          <h1>✅ Listing Published Successfully - تم نشر القائمة بنجاح</h1>
         </div>
-        <p>Dear <strong>${data.userName}</strong>,</p>
-        <p>Congratulations! Your property <strong>${data.propertyTitle}</strong> has been successfully <span style="color:green;font-weight:bold;">published</span> on our platform.</p>
-        <p>Your listing is now live and visible to potential buyers and renters.</p>
-        <div style="text-align:center;">
-          <a href="${data.propertyUrl}" class="button">View Property</a>
+        
+        <!-- English Section -->
+        <div class="language-section english">
+          <p>Dear <strong>${data.userName}</strong>,</p>
+          <p>Congratulations! Your property <strong>${data.propertyTitle}</strong> has been successfully <span style="color:green;font-weight:bold;">published</span> on our platform.</p>
+          <p>Your listing is now live and visible to potential buyers and renters.</p>
         </div>
+
+        <!-- Arabic Section -->
+        <div class="language-section arabic">
+          <p>عزيزي <strong>${data.userName}</strong>,</p>
+          <p>مبروك! تم <span style="color:green;font-weight:bold;">نشر</span> عقارك <strong>${data.propertyTitle}</strong> بنجاح على منصتنا.</p>
+          <p>قائمتك الآن نشطة ومرئية للمشترين والمستأجرين المحتملين.</p>
+        </div>
+
         <div class="footer">
           <p>📞 ${process.env.SUPPORT_PHONE || '+966500000000'} | ✉️ ${process.env.SUPPORT_EMAIL || 'support@realestate.com'}</p>
-          <p>© 2024 Real Estate Platform. All rights reserved.</p>
+          <p>© 2024 Real Estate Platform. All rights reserved. - © 2024 منصة العقارات. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </body>
     </html>`;
   }
-  
+
+  private getArabicUserType(userType: string): string {
+    const userTypes: { [key: string]: string } = {
+      'buyer': 'مشتري',
+      'seller': 'بائع',
+      'tenant': 'مستأجر',
+      'landlord': 'مالك',
+      'agent': 'وسيط عقاري',
+      'admin': 'مدير',
+      'user': 'مستخدم'
+    };
+    return userTypes[userType.toLowerCase()] || userType;
+  }
+
   async testConnection(): Promise<boolean> {
     try {
       await this.transporter.verify();
@@ -537,6 +721,4 @@ export class MailService {
       return false;
     }
   }
-
-
 }
