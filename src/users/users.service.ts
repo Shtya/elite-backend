@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, VerificationStatus } from 'entities/global.entity';
+import { Appointment, User, VerificationStatus } from 'entities/global.entity';
 import { CreateUserDto, UpdateUserDto, VerifyUserDto, UserQueryDto } from 'dto/users.dto';
 import * as bcrypt from 'bcryptjs';
 
@@ -10,6 +10,9 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     public usersRepository: Repository<User>,
+    @InjectRepository(Appointment)
+
+    public appointmentsRepository: Repository<Appointment>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -40,11 +43,23 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) throw new NotFoundException('User not found');
-    return user;
+  async findOne(id: number) {
+    const user = await this.usersRepository.findOne({
+      where: { id },
+    });
+  
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
+    const appointments = await this.appointmentsRepository.find({
+      where: { customer: { id: user.id } }, 
+      relations: ['property', 'agent'] 
+    });
+  
+    return { ...user, appointments };
   }
+  
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
