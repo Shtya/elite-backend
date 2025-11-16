@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType, VerificationStatus } from 'entities/global.entity';
 import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import bcrypt from 'bcryptjs/umd/types';
+import * as bcrypt from 'bcryptjs';
 import { RegisterDto } from 'dto/auth.dto';
 
 @Injectable()

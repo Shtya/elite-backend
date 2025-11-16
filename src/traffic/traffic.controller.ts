@@ -108,4 +108,21 @@ export class TrafficController {
   );
 
   }
+  // @Post('conversions/guest')
+  // createConversionGuest(@Body() body: any, @Req() req: any) {
+  //   // body: { userId, type: 'registration'|'appointment', visitorId?, referralCode?, campaignId? }
+  //   const headerRef = (req.headers['x-ref'] as string) || undefined;
+  //   const userId = req.user?.id;
+  //   if (!userId) {
+  //     throw new UnauthorizedException('Missing user context');
+  //   }
+  
+  //   return this.service.createConversion({
+  //     ...body,
+  //     referralCode: body.referralCode ?? headerRef,
+  //   },
+  //   userId
+  // );
+
+  // }
 }
