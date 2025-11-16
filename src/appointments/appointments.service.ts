@@ -74,7 +74,7 @@ export class AppointmentsService {
   
     // 4. Get all agents in the same area
     const areaAgents = await this.agentRepository.find({
-      where: { area: { id: property.area.id } },
+      where: { areas: { id: property.area.id } },
     });
     if (areaAgents.length === 0) {
       throw new NotFoundException("No agents available in this area");

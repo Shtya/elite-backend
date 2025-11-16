@@ -1,54 +1,57 @@
-import { IsNotEmpty, IsNumber, IsEnum, IsOptional, IsString } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsNotEmpty, IsNumber, IsEnum, IsOptional, IsString, ArrayNotEmpty, IsArray } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 import { AgentApprovalStatus } from '../entities/global.entity';
+
 
 export class CreateAgentDto {
   @IsNumber()
-  @IsOptional()
   @Type(() => Number)
-  userId?: number;
+  userId: number;
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Type(() => Number)
-  cityId: number;
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) =>
+    Array.isArray(value)
+      ? value.map(v => Number(v))
+      : value.split(',').map(v => Number(v))
+  )
+  @IsNumber({}, { each: true })
+  cityIds: number[];
 
   @IsOptional()
-  @IsString()
-  identityProof: string;
+  @IsArray()
+  @Transform(({ value }) =>
+    Array.isArray(value)
+      ? value.map(v => Number(v))
+      : value.split(',').map(v => Number(v))
+  )
+  @IsNumber({}, { each: true })
+  areaIds?: number[];
 
-  @IsOptional()
-  @IsString()
+  identityProof?: string;
   residencyDocument?: string;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  areaId?: number;
 }
-
 export class UpdateAgentDto {
   @IsOptional()
-  @IsNumber()
+  @IsArray()
   @Type(() => Number)
-  cityId?: number;
+  cityIds?: number[];
 
   @IsOptional()
-  @IsString()
-  identityProofUrl?: string;
+  @IsArray()
+  @Type(() => Number)
+  areaIds?: number[];
 
   @IsOptional()
-  @IsString()
-  residencyDocumentUrl?: string;
+  identityProof?: string;
 
   @IsOptional()
-  @IsEnum(AgentApprovalStatus)
-  status?: AgentApprovalStatus;
-
-  @IsOptional()
-  @IsString()
+  residencyDocument?: string;
+@IsOptional()
   kycNotes?: string;
+
 }
+
 
 export class ApproveAgentDto {
   @IsEnum(AgentApprovalStatus)

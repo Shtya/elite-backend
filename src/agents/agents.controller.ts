@@ -47,7 +47,7 @@ export class AgentsController {
     ),
   )
   async create(
-    @Body() createAgentDto: any,
+    @Body() createAgentDto: CreateAgentDto,
     @Req() req: RequestWithUser,
     @UploadedFiles()
     files?: {
@@ -55,15 +55,11 @@ export class AgentsController {
       residencyDocument?: Express.Multer.File[];
     },
   ) {
-    createAgentDto.cityId = Number(createAgentDto.cityId); 
-    createAgentDto.areaId = Number(createAgentDto.areaId); 
+    console.log(createAgentDto)
+    createAgentDto.cityIds = createAgentDto.cityIds;
+    createAgentDto.areaIds = createAgentDto.areaIds ;
     const byAdmin = req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase();
-    if (isNaN(createAgentDto.cityId)) {
-      throw new BadRequestException('cityId must be a number');
-    }
-    if (isNaN(createAgentDto.areaId)) {
-      throw new BadRequestException('cityId must be a number');
-    }
+
     if (
       req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase() &&
       !createAgentDto.userId

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, CustomerReview, NotificationChannel, NotificationType, User, UserType } from 'entities/global.entity';
+import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType } from 'entities/global.entity';
 import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
@@ -20,54 +20,62 @@ export class AgentsService {
     private reviewRepo: Repository<CustomerReview>,
     @InjectRepository(AgentBalance)
     private balanceRepo: Repository<AgentBalance>,
+
+    @InjectRepository(City)
+    private cityRepository: Repository<City>,
+@InjectRepository(Area)
+    private areaRepository: Repository<Area>,
     private notificationsService: NotificationsService,
   ) {}
 
-  async create(createAgentDto: CreateAgentDto,byAdmin:boolean): Promise<Agent> {
+  async create(createAgentDto: CreateAgentDto, byAdmin: boolean): Promise<Agent> {
 
-    // Step 1: Check if agent already exists
-    const existingAgentRecord = await this.agentsRepository.findOne({
+    const existingAgent = await this.agentsRepository.findOne({
       where: { user: { id: createAgentDto.userId } },
     });
   
-    if (existingAgentRecord) {
-      throw new ConflictException('Agent application already exists for this user');
+    if (existingAgent) {
+      throw new ConflictException("Agent application already exists for this user");
     }
   
-    // Step 2: Load the user (this was missing)
-    const user = await this.usersRepository.findOne({
-      where: { id: createAgentDto.userId },
-    });
+    const user = await this.usersRepository.findOne({ where: { id: createAgentDto.userId } });
   
-    if (!user) {
-      throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException("User not found");
+  
+    // business rule:
+    if (createAgentDto.cityIds.length > 1) {
+      createAgentDto.areaIds = []; // wipe areas
     }
   
-    // Step 3: Create the new agent
     const agent = this.agentsRepository.create({
-      user: user,
-      city: { id: createAgentDto.cityId },
+      user,
+  
+      // many cities
+      cities: createAgentDto.cityIds.map(id => ({ id })),
+  
+      // many areas
+      areas: createAgentDto.areaIds?.map(id => ({ id })) ?? [],
+  
       identityProofUrl: createAgentDto.identityProof,
       residencyDocumentUrl: createAgentDto.residencyDocument,
-      area:  { id: createAgentDto.areaId }, 
-     status: byAdmin ? AgentApprovalStatus.APPROVED : AgentApprovalStatus.PENDING, 
+      status: byAdmin ? AgentApprovalStatus.APPROVED : AgentApprovalStatus.PENDING,
     });
+  
     user.userType = byAdmin ? UserType.AGENT : UserType.CUSTOMER;
     await user.save();
   
-    // Step 4: Notify admins
-    if(!byAdmin){
-    await this.notificationsService.notifyUserType(UserType.ADMIN, {
-      type: NotificationType.SYSTEM,
-      title: 'New Agent Application',
-      message: `Agent ${user.fullName} has submitted a new application and requires approval.`,
-      relatedId: agent.id,
-      channel: NotificationChannel.IN_APP,
-    });}
+    if (!byAdmin) {
+      await this.notificationsService.notifyUserType(UserType.ADMIN, {
+        type: NotificationType.SYSTEM,
+        title: "New Agent Application",
+        message: `Agent ${user.fullName} submitted application.`,
+        channel: NotificationChannel.IN_APP,
+      });
+    }
   
-    // Step 5: Save & return
     return this.agentsRepository.save(agent);
   }
+  
   
 
   async findAll(query: AgentQueryDto): Promise<{ data: Agent[]; total: number }> {
@@ -102,17 +110,30 @@ export class AgentsService {
     return agent;
   }
 
-  async update(id: number, updateAgentDto: UpdateAgentDto): Promise<Agent> {
+  async update(id: number, dto: UpdateAgentDto): Promise<Agent> {
     const agent = await this.findOne(id);
-
-    if (updateAgentDto.cityId) {
-      agent.city = { id: updateAgentDto.cityId } as any;
+  
+    if (dto.cityIds) {
+      agent.cities = await this.cityRepository.findByIds(dto.cityIds);
+  
+      if (dto.cityIds.length > 1) {
+        agent.areas = []; // forbidden
+      }
     }
-
-    Object.assign(agent, updateAgentDto);
+  
+    if (dto.areaIds) {
+      if (agent.cities.length === 1) {
+        agent.areas = await this.areaRepository.findByIds(dto.areaIds);
+      } else {
+        throw new BadRequestException("Areas can only be assigned when agent has exactly ONE city");
+      }
+    }
+  
+    Object.assign(agent, dto);
+  
     return this.agentsRepository.save(agent);
   }
-
+  
   async remove(id: number): Promise<void> {
     const agent = await this.findOne(id);
     await this.agentsRepository.remove(agent);

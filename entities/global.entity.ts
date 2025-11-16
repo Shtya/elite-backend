@@ -13,6 +13,8 @@ import {
   Unique,
   RelationId,
   BaseEntity,
+  ManyToMany,
+  JoinTable,
 } from "typeorm";
 export enum AgentAppointmentRequestStatus {
   PENDING = "pending",
@@ -380,7 +382,10 @@ referralPartners: ReferralPartner[];
 @Entity("cities")
 @Index("IDX_cities_active", ["isActive"])
 export class City extends CoreEntity {
+  @PrimaryGeneratedColumn()
+  id:number
   @Column({ type: "varchar", length: 100 })
+
   name: string;
 
   @Column({ name: "is_active", type: "boolean", default: false })
@@ -740,14 +745,24 @@ export class Agent extends CoreEntity {
   @JoinColumn({ name: "user_id" })
   user: User;
 
-  @ManyToOne(() => City, { eager: true })
-  @JoinColumn({ name: "city_id" })
-  city: City;
-  @ManyToOne(() => Area, { eager: true, onDelete: "SET NULL", nullable: true })
-  @JoinColumn({ name: "area_id" })
-  area: Area;
-  @RelationId((p: Property) => p.area)
-  areaId: number;
+ 
+  @ManyToMany(() => City, { eager: true })
+  @JoinTable({
+    name: "agent_cities",
+    joinColumn: { name: "agent_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "city_id", referencedColumnName: "id" },
+  })
+  cities: City[];
+
+
+  @ManyToMany(() => Area, { eager: true })
+  @JoinTable({
+    name: "agent_areas",
+    joinColumn: { name: "agent_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "area_id", referencedColumnName: "id" },
+  })
+  areas: Area[];
+
   @Column({
     name: "identity_proof_url",
     type: "varchar",
@@ -778,6 +793,8 @@ export class Agent extends CoreEntity {
   @JoinColumn({ name: "updated_by" })
   updatedBy?: User | null;
 }
+
+
 @Entity("property_types")
 export class PropertyType extends CoreEntity {
   @Column({ type: "varchar", length: 100 })
