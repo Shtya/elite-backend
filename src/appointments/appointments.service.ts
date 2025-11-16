@@ -318,7 +318,7 @@ export class AppointmentsService {
       await this.agentAppointmentRequestRepository.findAndCount({
         where: [
           { agent: { id: agent.id },
-          status: In([AppointmentStatus.ACCEPTED, AppointmentStatus.COMPLETED]),
+          status: In([AppointmentStatus.ACCEPTED,AppointmentStatus.CONFIRMED,AppointmentStatus.COMPLETED,AppointmentStatus.EXPIRED]),
         },
         ],
         relations: ["appointment"],
@@ -331,7 +331,7 @@ export class AppointmentsService {
       await this.agentAppointmentRequestRepository.findAndCount({
         where: {
           agent: { id: agent.id },
-          status: AppointmentStatus.PENDING,
+          status: In([AppointmentStatus.PENDING,AppointmentStatus.REJECTED]),
         },
         relations: [
           "appointment",
