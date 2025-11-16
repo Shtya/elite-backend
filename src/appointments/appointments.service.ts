@@ -317,8 +317,8 @@ export class AppointmentsService {
     const [appointments, totalAppointments] =
       await this.agentAppointmentRequestRepository.findAndCount({
         where: [
-          { agent: { id: agent.id }
-, status: AppointmentStatus.ACCEPTED
+          { agent: { id: agent.id },
+          status: In([AppointmentStatus.ACCEPTED, AppointmentStatus.COMPLETED]),
         },
         ],
         relations: ["appointment"],
@@ -536,6 +536,7 @@ export class AppointmentsService {
       expired: 'Your appointment has expired.',
     };
   
+    
     await this.notificationsService.createNotification({
       userId: appointment.customer.id,
       type: NotificationType.APPOINTMENT_REMINDER,
