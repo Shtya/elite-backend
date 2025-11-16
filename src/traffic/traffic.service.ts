@@ -221,7 +221,8 @@ export class TrafficService {
       platform: body.platform ?? null,
       referralCode,
       isActive: true,
-      user: savedUser, // ✅ link directly here
+      user: savedUser,
+      userId: savedUser.id,
     });
   
     const savedPartner = await this.partnerRepo.save(partner);

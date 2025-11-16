@@ -618,7 +618,7 @@ export class ReferralPartner extends CoreEntity {
   @JoinColumn({ name: "user_id" })
   user: User;
   @Column({ name: "user_id", nullable: true })
-  userId: string;  @Column({ name: "is_active", type: "boolean", default: true })
+  userId:  number;  @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;
   @Column({ type: 'text', nullable: true })
 shareUrl?: string;
