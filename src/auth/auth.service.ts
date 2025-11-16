@@ -48,20 +48,39 @@ export class AuthService {
     const existingUser = await this.usersRepository.findOne({
       where: [
         { email: registerDto.email },
-        ...(registerDto.phoneNumber
-          ? [{ phoneNumber: registerDto.phoneNumber }]
-          : []),
+        ...(registerDto.phoneNumber ? [{ phoneNumber: registerDto.phoneNumber }] : []),
       ],
     });
-
+  
     if (existingUser) {
-      throw new ConflictException(
-        "User with this email (or phone) already exists"
-      );
+      if (existingUser.verificationStatus !== VerificationStatus.VERIFIED) {
+        // User exists but not verified → resend OTP
+        const otp = this.generateOtp();
+        existingUser.emailOtp = otp;
+        existingUser.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+        await this.usersRepository.save(existingUser);
+  
+        try {
+          await this.mailService.sendOtpEmail(existingUser.email, {
+            otp,
+            userName: existingUser.fullName,
+            purpose: "registration",
+          });
+          console.log(`✅ OTP resent to ${existingUser.email}`);
+        } catch (error) {
+          console.error("❌ Failed to resend OTP email:", error);
+        }
+  
+        return { message: "An OTP has been resent to your email. Please verify your account." };
+      }
+  
+      // Already verified → normal conflict
+      throw new ConflictException("User with this email (or phone) already exists");
     }
-
+  
+    // New user → create normally
     const passwordHash = await bcrypt.hash(registerDto.password, 12);
-
+  
     const user = this.usersRepository.create({
       email: registerDto.email,
       phoneNumber: registerDto.phoneNumber,
@@ -72,14 +91,13 @@ export class AuthService {
       verificationStatus: VerificationStatus.PENDING,
     });
     await this.usersRepository.save(user);
-
-    // Generate email verification OTP
+  
+    // Generate OTP
     const otp = this.generateOtp();
     user.emailOtp = otp;
     user.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     await this.usersRepository.save(user);
-
-    // Send OTP via Email
+  
     try {
       await this.mailService.sendOtpEmail(user.email, {
         otp,
@@ -90,35 +108,10 @@ export class AuthService {
     } catch (error) {
       console.error("❌ Failed to send OTP email:", error);
     }
-
-    await this.notificationsService.createNotification({
-      userId: user.id,
-      type: NotificationType.SYSTEM,
-      title: "Welcome to the Real Estate Platform",
-      message: `Hello ${user.fullName}! Your account has been successfully created as a ${user.userType}.`,
-      channel: NotificationChannel.IN_APP,
-    });
-
-    // Notification for admin about a new user registration
-    const adminUsers = await this.usersRepository.find({
-      where: { userType: UserType.ADMIN },
-    });
-
-    if (adminUsers.length > 0) {
-      await this.notificationsService.createNotification({
-        userId: adminUsers[0].id,
-        type: NotificationType.SYSTEM,
-        title: "New User Registered",
-        message: `A new user named ${user.fullName} has registered on the platform.`,
-        channel: NotificationChannel.IN_APP,
-      });
-    }
-
-    return {
-      message:
-        "Registration successful. We sent a verification code to your email.",
-    };
+  
+    return { message: "Registration successful. We sent a verification code to your email." };
   }
+  
 
   async verifyOtp({
     email,
@@ -410,4 +403,36 @@ export class AuthService {
 
     return this.generateTokens(user);
   }
+  async resendOtp(email: string): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+  
+    if (!user) {
+      throw new NotFoundException("No account found with this email");
+    }
+  
+    if (user.verificationStatus === VerificationStatus.VERIFIED) {
+      throw new ConflictException("This email is already verified");
+    }
+  
+    // Generate a new OTP
+    const otp = this.generateOtp();
+    user.emailOtp = otp;
+    user.emailOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await this.usersRepository.save(user);
+  
+    // Send OTP via email
+    try {
+      await this.mailService.sendOtpEmail(user.email, {
+        otp,
+        userName: user.fullName,
+        purpose: "registration",
+      });
+      console.log(`✅ OTP resent to ${user.email}`);
+    } catch (error) {
+      console.error("❌ Failed to send OTP email:", error);
+    }
+  
+    return { message: "A new OTP has been sent to your email. Please verify your account." };
+  }
+  
 }

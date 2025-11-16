@@ -302,7 +302,7 @@ async registerAgent(
 
   await this.agentsRepository.save(agent);
 
-  return { message: "Agent registered successfully. OTP sent to email." };
+  return { message: "Agent registered successfully." };
 }
 
 }

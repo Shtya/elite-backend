@@ -8,6 +8,7 @@ import {
   Req,
   Put,
   Get,
+  BadRequestException,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import {
@@ -105,4 +106,12 @@ export class AuthController {
   async verifyLoginOtp(@Body() dto: VerifyEmailOtpDto) {
     return this.authService.verifyLoginOtp(dto);
   }
+  @Post('resend-otp')
+async resendOtp(@Body('email') email: string) {
+  if (!email) {
+    throw new BadRequestException('Email is required');
+  }
+  return this.authService.resendOtp(email);
+}
+
 }

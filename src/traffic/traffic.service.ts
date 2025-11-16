@@ -23,7 +23,7 @@ import {
   UserType,
 } from "entities/global.entity";
 import * as bcrypt from "bcryptjs";
-type ConversionType = "registration" | "appointment";
+type ConversionType = "login" | "appointment";
 
 interface CreatePartnerDto {
   name: string;
