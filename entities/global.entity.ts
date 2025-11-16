@@ -390,6 +390,8 @@ export class City extends CoreEntity {
 
   @Column({ name: "is_active", type: "boolean", default: false })
   isActive: boolean;
+  @OneToMany(() => Area, (area) => area.city)
+  areas: Area[];
 }
 
 

@@ -36,6 +36,12 @@ export class RegisterDto {
 
   @IsOptional()
   profilePhotoUrl?: string;
+
+  @IsOptional()
+  identityProof?: string;
+  
+  @IsOptional()
+  residencyDocument?: string;
 }
 
 export class VerifyOtpDto {

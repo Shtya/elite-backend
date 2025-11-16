@@ -51,45 +51,30 @@ export class AgentsController {
     @Body() createAgentDto: CreateAgentDto,
     @Req() req: RequestWithUser,
     @UploadedFiles()
-    files?: {
-      identityProof?: Express.Multer.File[];
-      residencyDocument?: Express.Multer.File[];
-    },
+    files?: { identityProof?: Express.Multer.File[]; residencyDocument?: Express.Multer.File[] },
   ) {
-    console.log(createAgentDto)
-    createAgentDto.cityIds = createAgentDto.cityIds;
-    createAgentDto.areaIds = createAgentDto.areaIds ;
     const byAdmin = req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase();
-
-    if (
-      req.user.userType?.toLowerCase() === UserType.ADMIN.toLowerCase() &&
-      !createAgentDto.userId
-    ) {
-      throw new BadRequestException(
-        'The admin must provide userId for the customer',
-      );
-    }
-    else if (req.user.userType?.toLowerCase() === UserType.CUSTOMER.toLowerCase()) {
+  
+    if (byAdmin && !createAgentDto.userId) {
+      throw new BadRequestException('Admin must provide userId for the customer');
+    } else if (!byAdmin) {
       createAgentDto.userId = req.user.id;
     }
-    
-
-    
+  
     if (files?.identityProof?.[0]) {
       createAgentDto.identityProof = `/uploads/images/${files.identityProof[0].filename}`;
     }
     if (files?.residencyDocument?.[0]) {
       createAgentDto.residencyDocument = `/uploads/images/${files.residencyDocument[0].filename}`;
     }
-
-    // Ensure either URL or file is provided
+  
     if (!createAgentDto.identityProof || !createAgentDto.residencyDocument) {
-      throw new BadRequestException(
-        'identityProof or residencyDocument is missing (send as URL or file)',
-      );
+      throw new BadRequestException('identityProof or residencyDocument is missing');
     }
-    return this.agentsService.create(createAgentDto,byAdmin);
+  
+    return this.agentsService.create(createAgentDto, byAdmin);
   }
+  
   @Get("dashboard")
   @Roles(UserType.AGENT)
   async getMyDashboard(@Req() req: RequestWithUser) {
@@ -132,8 +117,35 @@ export class AgentsController {
     };
   }
   
-
+  @Post('register')
+    @UseInterceptors(
+      FileFieldsInterceptor([
+        { name: 'profilePhotoUrl', maxCount: 1 },
+        { name: 'identityProof', maxCount: 1 },
+        { name: 'residencyDocument', maxCount: 1 },
+      ]),
+    )
+  async registerAgent(
+    @Body() registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[] },
+    @UploadedFiles() files?: { identityProof?: Express.Multer.File[]; residencyDocument?: Express.Multer.File[], profilePhotoUrl?: Express.Multer.File[] },
+  ) {
+    if (!registerDto.cityIds || !Array.isArray(registerDto.cityIds) || registerDto.cityIds.length === 0) {
+      throw new BadRequestException('cityIds must be a non-empty array');
+    }
   
+    // convert all to string to handle "all"
+    registerDto.cityIds = registerDto.cityIds.map(String);
+    if (registerDto.areaIds) registerDto.areaIds = registerDto.areaIds.map(String);
+  
+    if (files?.identityProof?.[0]) {
+      registerDto.identityProof = `/uploads/images/${files.identityProof[0].filename}`;
+    }
+    if (files?.residencyDocument?.[0]) {
+      registerDto.residencyDocument = `/uploads/images/${files.residencyDocument[0].filename}`;
+    }
+  
+    return this.agentsService.registerAgent(registerDto, files);
+  }
 
   @Get(":id")
   @Roles(UserType.ADMIN, UserType.QUALITY)
@@ -141,32 +153,34 @@ export class AgentsController {
     return this.agentsService.findOne(+id);
   }
 
-  @Patch(":id")
+
+  @Patch(':id')
   @Roles(UserType.ADMIN)
   @UseInterceptors(
     FileFieldsInterceptor(
       [
-        { name: "identityProof", maxCount: 1 },
-        { name: "residencyDocument", maxCount: 1 },
+        { name: 'identityProof', maxCount: 1 },
+        { name: 'residencyDocument', maxCount: 1 },
       ],
-      imageUploadOptions
-    )
+      imageUploadOptions,
+    ),
   )
   update(
-    @Param("id") id: string,
-    @Body() updateAgentDto: any,
-    @UploadedFiles()
-    files?: {
-      identityProof?: Express.Multer.File[];
-      residencyDocument?: Express.Multer.File[];
-    }
+    @Param('id') id: string,
+    @Body() updateAgentDto: UpdateAgentDto,
+    @UploadedFiles() files?: { identityProof?: Express.Multer.File[]; residencyDocument?: Express.Multer.File[] },
   ) {
     if (files?.identityProof?.[0]) {
-      updateAgentDto.identityProofUrl = `/uploads/images/${files.identityProof[0].filename}`;
+      updateAgentDto.identityProof = `/uploads/images/${files.identityProof[0].filename}`;
     }
     if (files?.residencyDocument?.[0]) {
-      updateAgentDto.residencyDocumentUrl = `/uploads/images/${files.residencyDocument[0].filename}`;
+      updateAgentDto.residencyDocument = `/uploads/images/${files.residencyDocument[0].filename}`;
     }
+  
+    // cityIds and areaIds may contain "all"
+    if (updateAgentDto.cityIds) updateAgentDto.cityIds = updateAgentDto.cityIds.map(Number);
+    if (updateAgentDto.areaIds) updateAgentDto.areaIds = updateAgentDto.areaIds.map(Number);
+  
     return this.agentsService.update(+id, updateAgentDto);
   }
 
@@ -175,34 +189,7 @@ export class AgentsController {
   remove(@Param("id") id: string) {
     return this.agentsService.remove(+id);
   }
-  @Post('register')
-  @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'identityProof', maxCount: 1 },
-      { name: 'residencyDocument', maxCount: 1 },
-    ]),
-  )
-  async registerAgent(
-    @Body() registerDto: RegisterDto & { cityIds: number[]; areaIds?: number[] },
-    @UploadedFiles()
-    files?: {
-      identityProof?: Express.Multer.File[];
-      residencyDocument?: Express.Multer.File[];
-    },
-  ) {
-    // Validate that at least one city is provided
-    if (!registerDto.cityIds || !Array.isArray(registerDto.cityIds) || registerDto.cityIds.length === 0) {
-      throw new BadRequestException('cityIds must be a non-empty array of numbers');
-    }
 
-    // Ensure all cityIds and areaIds are numbers
-    registerDto.cityIds = registerDto.cityIds.map(Number);
-    if (registerDto.areaIds) {
-      registerDto.areaIds = registerDto.areaIds.map(Number);
-    }
-
-    return this.agentsService.registerAgent(registerDto, files);
-  }
 
   @Post(":id/approve")
   @Roles(UserType.ADMIN, UserType.QUALITY)

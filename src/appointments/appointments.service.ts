@@ -159,6 +159,7 @@ export class AppointmentsService {
       relations: ["appointment", "agent", "appointment.customer"],
     });
   
+  
     const agent = await this.agentRepository.findOne({
       where: { user: { id: agentId } },
     });
@@ -314,12 +315,13 @@ export class AppointmentsService {
   
     // ---- Confirmed Appointments (Paginated) ----
     const [appointments, totalAppointments] =
-      await this.appointmentsRepository.findAndCount({
+      await this.agentAppointmentRequestRepository.findAndCount({
         where: [
-          { agent: { id: agent.id } },
+          { agent: { id: agent.id }
+, status: AgentAppointmentRequestStatus.ACCEPTED
+        },
         ],
-        relations: ["property", "customer"],
-        order: { appointmentDate: "ASC", startTime: "ASC" },
+        relations: ["appointment"],
         skip,
         take: limit,
       });

@@ -29,9 +29,58 @@ export class AgentsService {
     private areaRepository: Repository<Area>,
     private notificationsService: NotificationsService,
   ) {}
-
+  private async resolveCityAndAreaSelection(cityIds: any[], areaIds: any[]) {
+    let cities: City[];
+    let areas: Area[] = [];
+  
+    const allCities = await this.cityRepository.find({
+      relations: ['areas'],
+    });
+  
+    // --- RULE 1: ALL CITIES ---
+    if (cityIds.includes("all")) {
+      cities = allCities;
+      // assign ALL areas of ALL cities
+      areas = allCities.flatMap(c => c.areas);
+      return { cities, areas };
+    }
+  
+    // convert to numbers
+    cityIds = cityIds.map(Number);
+  
+    cities = await this.cityRepository.find({
+      where: cityIds.map(id => ({ id })),
+      relations: ['areas']
+    });
+  
+    if (!cities.length) {
+      throw new BadRequestException("Invalid cityIds");
+    }
+  
+    // --- RULE 2: MULTIPLE CITIES ---
+    if (cities.length > 1) {
+      // assign all areas for these cities
+      areas = cities.flatMap(c => c.areas);
+      return { cities, areas };
+    }
+  
+    // --- RULE 3: EXACTLY ONE CITY ---
+    const city = cities[0];
+  
+    if (areaIds?.includes("all")) {
+      // assign all areas for this city
+      areas = city.areas;
+      return { cities, areas };
+    }
+  
+    // specific areas
+    areaIds = areaIds?.map(Number) ?? [];
+    areas = await this.areaRepository.findByIds(areaIds);
+  
+    return { cities, areas };
+  }
+  
   async create(createAgentDto: CreateAgentDto, byAdmin: boolean): Promise<Agent> {
-
     const existingAgent = await this.agentsRepository.findOne({
       where: { user: { id: createAgentDto.userId } },
     });
@@ -40,24 +89,21 @@ export class AgentsService {
       throw new ConflictException("Agent application already exists for this user");
     }
   
-    const user = await this.usersRepository.findOne({ where: { id: createAgentDto.userId } });
-  
+    const user = await this.usersRepository.findOne({
+      where: { id: createAgentDto.userId },
+    });
     if (!user) throw new NotFoundException("User not found");
   
-    // business rule:
-    if (createAgentDto.cityIds.length > 1) {
-      createAgentDto.areaIds = []; // wipe areas
-    }
+    // use resolver here
+    const { cities, areas } = await this.resolveCityAndAreaSelection(
+      createAgentDto.cityIds,
+      createAgentDto.areaIds ?? []
+    );
   
     const agent = this.agentsRepository.create({
       user,
-  
-      // many cities
-      cities: createAgentDto.cityIds.map(id => ({ id })),
-  
-      // many areas
-      areas: createAgentDto.areaIds?.map(id => ({ id })) ?? [],
-  
+      cities,
+      areas,
       identityProofUrl: createAgentDto.identityProof,
       residencyDocumentUrl: createAgentDto.residencyDocument,
       status: byAdmin ? AgentApprovalStatus.APPROVED : AgentApprovalStatus.PENDING,
@@ -77,6 +123,7 @@ export class AgentsService {
   
     return this.agentsRepository.save(agent);
   }
+  
   
   
 
@@ -115,26 +162,25 @@ export class AgentsService {
   async update(id: number, dto: UpdateAgentDto): Promise<Agent> {
     const agent = await this.findOne(id);
   
-    if (dto.cityIds) {
-      agent.cities = await this.cityRepository.findByIds(dto.cityIds);
-  
-      if (dto.cityIds.length > 1) {
-        agent.areas = []; // forbidden
-      }
+    if (!dto.cityIds && !dto.areaIds) {
+      Object.assign(agent, dto);
+      return this.agentsRepository.save(agent);
     }
   
-    if (dto.areaIds) {
-      if (agent.cities.length === 1) {
-        agent.areas = await this.areaRepository.findByIds(dto.areaIds);
-      } else {
-        throw new BadRequestException("Areas can only be assigned when agent has exactly ONE city");
-      }
-    }
+    // use resolver here
+    const { cities, areas } = await this.resolveCityAndAreaSelection(
+      dto.cityIds ?? agent.cities.map(c => c.id),
+      dto.areaIds ?? agent.areas.map(a => a.id)
+    );
+  
+    agent.cities = cities;
+    agent.areas = areas;
   
     Object.assign(agent, dto);
   
     return this.agentsRepository.save(agent);
   }
+  
   
   async remove(id: number): Promise<void> {
     const agent = await this.findOne(id);
@@ -222,12 +268,13 @@ async getDashboard(agentId: number) {
 }
 
 async registerAgent(
-  registerDto: RegisterDto & { cityIds: number[]; areaIds?: number[] },
+  registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[] },
   files?: {
     identityProof?: Express.Multer.File[];
     residencyDocument?: Express.Multer.File[];
   },
 ): Promise<{ message: string }> {
+
   // 1️⃣ Check if user exists
   const existingUser = await this.usersRepository.findOne({
     where: [
@@ -251,10 +298,10 @@ async registerAgent(
     passwordHash,
     verificationStatus: VerificationStatus.VERIFIED,
   });
+
   await this.usersRepository.save(user);
 
-
-  // 5️⃣ Notifications for the user
+  // 3️⃣ Notify user
   await this.notificationsService.createNotification({
     userId: user.id,
     type: NotificationType.SYSTEM,
@@ -263,7 +310,7 @@ async registerAgent(
     channel: NotificationChannel.IN_APP,
   });
 
-  // 6️⃣ Notification for admin
+  // 4️⃣ Notify Admin
   const adminUsers = await this.usersRepository.find({ where: { userType: UserType.ADMIN } });
   if (adminUsers.length > 0) {
     await this.notificationsService.createNotification({
@@ -275,7 +322,7 @@ async registerAgent(
     });
   }
 
-  // 7️⃣ Create Agent entity
+  // 5️⃣ Create agent entity
   const agent = this.agentsRepository.create({
     user,
     identityProofUrl: files?.identityProof?.[0]
@@ -286,23 +333,19 @@ async registerAgent(
       : undefined,
   });
 
-  // Fetch cities and areas from DB
-  const cities = await this.cityRepository.findByIds(registerDto.cityIds);
-  if (!cities.length) throw new BadRequestException("Invalid city IDs");
-  agent.cities = cities;
+  // 6️⃣ Resolve city & area assignment
+  const { cities, areas } = await this.resolveCityAndAreaSelection(
+    registerDto.cityIds,
+    registerDto.areaIds ?? []
+  );
 
-  if (registerDto.areaIds) {
-    if (cities.length === 1) {
-      const areas = await this.areaRepository.findByIds(registerDto.areaIds);
-      agent.areas = areas;
-    } else {
-      agent.areas = []; // can't assign areas if multiple cities
-    }
-  }
+  agent.cities = cities;
+  agent.areas = areas;
 
   await this.agentsRepository.save(agent);
 
   return { message: "Agent registered successfully." };
 }
+
 
 }
