@@ -227,8 +227,7 @@ export class AgentsService {
   }
 
   async approve(id: number, approveAgentDto: ApproveAgentDto): Promise<Agent> {
-    const agent = await this.findOne(id);
-
+    const agent = await this.agentsRepository.findOne({where:{id},relations:['user']});
     agent.status = approveAgentDto.status;
     if (approveAgentDto.kycNotes) {
       agent.kycNotes = approveAgentDto.kycNotes;

@@ -28,6 +28,8 @@ import { Roles } from "../auth/decorators/roles.decorator";
 import { UserType } from "entities/global.entity";
 import { CRUD } from "common/crud.service";
 import { RegisterDto } from "dto/auth.dto";
+import { Request } from "express";
+
 interface RequestWithUser extends Request {
   user: any;
 }
