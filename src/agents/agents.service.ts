@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Agent, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType, VerificationStatus } from 'entities/global.entity';
+import { Agent, AgentAppointmentRequest, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, AppointmentStatus, Area, City, CustomerReview, NotificationChannel, NotificationType, User, UserType, VerificationStatus } from 'entities/global.entity';
 import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import * as bcrypt from 'bcryptjs';
@@ -27,6 +27,8 @@ export class AgentsService {
     private cityRepository: Repository<City>,
 @InjectRepository(Area)
     private areaRepository: Repository<Area>,
+    @InjectRepository(AgentAppointmentRequest)
+    private agentAppointmentRepository: Repository<AgentAppointmentRequest>,
     private notificationsService: NotificationsService,
   ) {}
   private async resolveCityAndAreaSelection(cityIds: any[], areaIds: any[]) {
@@ -37,15 +39,12 @@ export class AgentsService {
       relations: ['areas'],
     });
   
-    // --- RULE 1: ALL CITIES ---
     if (cityIds.includes("all")) {
       cities = allCities;
-      // assign ALL areas of ALL cities
       areas = allCities.flatMap(c => c.areas);
       return { cities, areas };
     }
   
-    // convert to numbers
     cityIds = cityIds.map(Number);
   
     cities = await this.cityRepository.find({
@@ -57,23 +56,18 @@ export class AgentsService {
       throw new BadRequestException("Invalid cityIds");
     }
   
-    // --- RULE 2: MULTIPLE CITIES ---
     if (cities.length > 1) {
-      // assign all areas for these cities
       areas = cities.flatMap(c => c.areas);
       return { cities, areas };
     }
   
-    // --- RULE 3: EXACTLY ONE CITY ---
     const city = cities[0];
   
     if (areaIds?.includes("all")) {
-      // assign all areas for this city
       areas = city.areas;
       return { cities, areas };
     }
   
-    // specific areas
     areaIds = areaIds?.map(Number) ?? [];
     areas = await this.areaRepository.findByIds(areaIds);
   
@@ -146,19 +140,64 @@ export class AgentsService {
     return { data, total };
   }
 
-  async findOne(id: number): Promise<Agent> {
+  async findOne(id: number): Promise<any> {
     const agent = await this.agentsRepository.findOne({
       where: { id },
-      relations: ['user', 'cities','areas', 'updatedBy'],
+      relations: ['user', 'cities', 'areas', 'updatedBy'],
     });
-
+  
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
-
-    return agent;
+  
+    // Run all counts in parallel
+    const [
+      appointmentAccepted,
+      appointmentExpired,
+      appointmentCancelled,
+      appointmentConfirmed,
+      appointmentCompleted,
+      appointmentRejected,
+    ] = await Promise.all([
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.ACCEPTED,
+        agent: { id },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.EXPIRED,
+        agent: { id },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.CANCELLED,
+        agent: { id },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.CONFIRMED,
+        agent: { id },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.COMPLETED,
+        agent: { id },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.REJECTED,
+        agent: { id },
+      }),
+    ]);
+  
+    return {
+      agent,
+      stats: {
+        accepted: appointmentAccepted,
+        expired: appointmentExpired,
+        cancelled: appointmentCancelled,
+        confirmed: appointmentConfirmed,
+        completed: appointmentCompleted,
+        rejected: appointmentRejected,
+      },
+    };
   }
-
+  
   async update(id: number, dto: UpdateAgentDto): Promise<Agent> {
     const agent = await this.findOne(id);
   
@@ -275,7 +314,6 @@ async registerAgent(
   },
 ): Promise<{ message: string }> {
 
-  // 1️⃣ Check if user exists
   const existingUser = await this.usersRepository.findOne({
     where: [
       { email: registerDto.email },
@@ -286,7 +324,6 @@ async registerAgent(
   if (existingUser) {
     throw new ConflictException("User with this email (or phone) already exists");
   }
-
   // 2️⃣ Hash password and create user
   const passwordHash = await bcrypt.hash(registerDto.password, 12);
   const user = this.usersRepository.create({
@@ -301,7 +338,6 @@ async registerAgent(
 
   await this.usersRepository.save(user);
 
-  // 3️⃣ Notify user
   await this.notificationsService.createNotification({
     userId: user.id,
     type: NotificationType.SYSTEM,

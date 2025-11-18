@@ -129,11 +129,13 @@ export class AgentsController {
     @Body() registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[] },
     @UploadedFiles() files?: { identityProof?: Express.Multer.File[]; residencyDocument?: Express.Multer.File[], profilePhotoUrl?: Express.Multer.File[] },
   ) {
-    if (!registerDto.cityIds || !Array.isArray(registerDto.cityIds) || registerDto.cityIds.length === 0) {
+    if (typeof registerDto.cityIds === 'string' && registerDto.cityIds === 'all') {
+      registerDto.cityIds = ['all'];
+    }
+    
+    if (!Array.isArray(registerDto.cityIds) || registerDto.cityIds.length === 0) {
       throw new BadRequestException('cityIds must be a non-empty array');
     }
-  
-    // convert all to string to handle "all"
     registerDto.cityIds = registerDto.cityIds.map(String);
     if (registerDto.areaIds) registerDto.areaIds = registerDto.areaIds.map(String);
   

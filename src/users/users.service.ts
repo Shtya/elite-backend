@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Appointment, User, VerificationStatus } from 'entities/global.entity';
+import { Appointment, AppointmentStatus, User, VerificationStatus } from 'entities/global.entity';
 import { CreateUserDto, UpdateUserDto, VerifyUserDto, UserQueryDto } from 'dto/users.dto';
 import * as bcrypt from 'bcryptjs';
 
@@ -52,12 +52,59 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
   
+    // Fetch all user appointments
     const appointments = await this.appointmentsRepository.find({
-      where: { customer: { id: user.id } }, 
-      relations: ['property', 'agent'] 
+      where: { customer: { id: user.id } },
+      relations: ['property', 'agent'],
     });
   
-    return { ...user, appointments };
+    // Run all appointment counts in parallel
+    const [
+      appointmentAccepted,
+      appointmentExpired,
+      appointmentCancelled,
+      appointmentConfirmed,
+      appointmentCompleted,
+      appointmentRejected,
+    ] = await Promise.all([
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.ACCEPTED,
+        customer: { id },
+      }),
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.EXPIRED,
+        customer: { id },
+      }),
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.CANCELLED,
+        customer: { id },
+      }),
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.CONFIRMED,
+        customer: { id },
+      }),
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.COMPLETED,
+        customer: { id },
+      }),
+      this.appointmentsRepository.countBy({
+        status: AppointmentStatus.REJECTED,
+        customer: { id },
+      }),
+    ]);
+  
+    return {
+      ...user,
+      appointments,
+      stats: {
+        accepted: appointmentAccepted,
+        expired: appointmentExpired,
+        cancelled: appointmentCancelled,
+        confirmed: appointmentConfirmed,
+        completed: appointmentCompleted,
+        rejected: appointmentRejected,
+      },
+    };
   }
   
 

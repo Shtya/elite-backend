@@ -8,8 +8,8 @@ export class CreateAgentDto {
   @Type(() => Number)
   userId: number;
 
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @Transform(({ value }) =>
     Array.isArray(value)
       ? value.map(v => Number(v))

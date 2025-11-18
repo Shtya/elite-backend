@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
-import { Appointment, AppointmentStatusHistory, AppointmentStatus, User, Property, NotificationType, NotificationChannel, UserType, AgentAppointmentRequest, Agent, AgentAppointmentRequestStatus } from 'entities/global.entity';
+import { Appointment, AppointmentStatusHistory, AppointmentStatus, User, Property, NotificationType, NotificationChannel, UserType, AgentAppointmentRequest, Agent, AgentAppointmentRequestStatus, AgentApprovalStatus } from 'entities/global.entity';
 import { CreateAppointmentDto, UpdateAppointmentDto, UpdateStatusDto, AppointmentQueryDto } from '../../dto/appointments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
@@ -41,7 +41,7 @@ export class AppointmentsService {
   
     const property = await this.propertiesRepository.findOne({
       where: { id: createAppointmentDto.propertyId },
-      relations: ["area", "city"],
+      relations: ["area", "city"]
     });
     if (!property) throw new NotFoundException("Property not found");
   
@@ -75,6 +75,7 @@ export class AppointmentsService {
     // 4. Get all agents
     const agents = await this.agentRepository.find({
       relations: ["cities", "areas", "user"],
+      where:{status:AgentApprovalStatus.APPROVED}
     });
     if (agents.length === 0) {
       throw new NotFoundException("No agents found.");
