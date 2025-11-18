@@ -148,7 +148,11 @@ export class AgentsController {
   
     return this.agentsService.registerAgent(registerDto, files);
   }
-
+  @Post(":id/approve")
+  @Roles(UserType.ADMIN, UserType.QUALITY)
+  approve(@Param("id") id: string, @Body() approveAgentDto: ApproveAgentDto) {
+    return this.agentsService.approve(+id, approveAgentDto);
+  }
   @Get(":id")
   @Roles(UserType.ADMIN, UserType.QUALITY)
   findOne(@Param("id") id: string) {
@@ -193,11 +197,7 @@ export class AgentsController {
   }
 
 
-  @Post(":id/approve")
-  @Roles(UserType.ADMIN, UserType.QUALITY)
-  approve(@Param("id") id: string, @Body() approveAgentDto: ApproveAgentDto) {
-    return this.agentsService.approve(+id, approveAgentDto);
-  }
+
 
   @Get("user/:userId")
   @Roles(UserType.ADMIN, UserType.QUALITY)
