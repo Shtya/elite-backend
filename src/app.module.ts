@@ -29,6 +29,7 @@ import { FavoritesModule } from "./favorite-property/favorite-property.module";
 import { ExportModule } from "./export/export.module";
 import { TeamModule } from "./team-member/team-member.module";
 import { ContactUsModule } from "./contactUs/contactUs.module";
+import { BlogModule } from "./blog/blog.module,";
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -76,6 +77,7 @@ import { ContactUsModule } from "./contactUs/contactUs.module";
     ExportModule,
     TeamModule,
     ContactUsModule,
+    BlogModule
   ],
   providers: [
     QueryFailedErrorFilter,
