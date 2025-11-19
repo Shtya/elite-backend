@@ -16,7 +16,6 @@ export class LoginDto {
 
 export class RegisterDto {
   @IsOptional()
-  @IsEmail()
   email: string;
 
   @IsString()
