@@ -379,6 +379,12 @@ referralPartners: ReferralPartner[];
 
   @Column({ name: "is_active", type: "boolean", default: true })
   isActive: boolean;
+  @Column({ nullable: true })
+  phoneOtp?: string;
+
+  @Column({ type: "timestamp", nullable: true })
+  phoneOtpExpiresAt?: Date;
+
 }
 
 @Entity("cities")

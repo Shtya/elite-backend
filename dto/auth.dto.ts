@@ -1,20 +1,22 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 import { UserType } from '../entities/global.entity';
 
 export class LoginDto {
+  @IsOptional()
   @IsEmail()
-  @IsNotEmpty()
-  email: string;
+  email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phoneNumber?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
   password: string;
 }
 
 export class RegisterDto {
+  @IsOptional()
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
   @IsString()
@@ -45,16 +47,17 @@ export class RegisterDto {
 }
 
 export class VerifyOtpDto {
+  @IsOptional()
   @IsEmail()
-  @IsNotEmpty()
-  email: string;
+  email?: string;
+
+  @IsOptional()
+  @IsPhoneNumber()
+  phoneNumber?: string;
 
   @IsString()
-  @IsNotEmpty()
-  @MinLength(6)
   otp: string;
 }
-
 export class RefreshTokenDto {
   @IsString()
   @IsNotEmpty()
@@ -117,4 +120,16 @@ export class VerifyEmailOtpDto {
   @IsString()
   @IsNotEmpty()
   otp: string;
+}
+
+export class VerifyPhoneOtpDto {
+  @IsPhoneNumber()
+  phoneNumber: string;
+
+  @IsString()
+  otp: string;
+}
+export class PhoneLoginDto {
+  @IsPhoneNumber()
+  phoneNumber: string;
 }

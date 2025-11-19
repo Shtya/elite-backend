@@ -28,11 +28,12 @@ import {
   }
   
   @Controller('blogs')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   export class BlogsController {
     constructor(private readonly blogsService: BlogsService) {}
   
     @Post()
+    @UseGuards(JwtAuthGuard, RolesGuard)
+
     @Roles(UserType.ADMIN)
     @UseInterceptors(FileInterceptor('image', imageUploadOptions))
     async create(
@@ -107,7 +108,7 @@ import {
     async findOne(@Param('id') id: string) {
       return this.blogsService.findOne(+id);
     }
-  
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Patch(':id')
     @Roles(UserType.ADMIN)
     @UseInterceptors(FileInterceptor('image', imageUploadOptions))
@@ -122,18 +123,21 @@ import {
   
       return this.blogsService.update(+id, updateBlogDto);
     }
+    @UseGuards(JwtAuthGuard, RolesGuard)
   
     @Post(':id/publish')
     @Roles(UserType.ADMIN, UserType.AGENT)
     async publish(@Param('id') id: string) {
       return this.blogsService.publish(+id);
     }
+    @UseGuards(JwtAuthGuard, RolesGuard)
   
     @Post(':id/unpublish')
     @Roles(UserType.ADMIN, UserType.AGENT)
     async unpublish(@Param('id') id: string) {
       return this.blogsService.unpublish(+id);
     }
+    @UseGuards(JwtAuthGuard, RolesGuard)
   
     @Delete(':id')
     @Roles(UserType.ADMIN)

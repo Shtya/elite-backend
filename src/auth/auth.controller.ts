@@ -22,6 +22,8 @@ import {
   UpdateProfileDto,
   EmailLoginDto,
   VerifyEmailOtpDto,
+  PhoneLoginDto,
+  VerifyPhoneOtpDto,
 } from "../../dto/auth.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { Request } from "express";
@@ -91,7 +93,36 @@ export class AuthController {
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
   }
+  @Post("phone/register")
+  async phoneRegister(@Body() registerDto: RegisterDto) {
+    if (!registerDto.phoneNumber) {
+      throw new BadRequestException("Phone number is required");
+    }
+    return this.authService.phoneRegister(registerDto);
+  }
 
+  @Post("phone/send-otp")
+  async sendPhoneOtp(@Body() phoneLoginDto: PhoneLoginDto) {
+    return this.authService.sendPhoneOtp(phoneLoginDto.phoneNumber);
+  }
+
+  @Post("phone/verify-otp")
+  async verifyPhoneOtp(@Body() verifyPhoneOtpDto: VerifyPhoneOtpDto) {
+    return this.authService.verifyPhoneOtp(verifyPhoneOtpDto);
+  }
+
+  @Post("phone/login")
+  async phoneLogin(@Body() phoneLoginDto: PhoneLoginDto) {
+    return this.authService.sendPhoneOtp(phoneLoginDto.phoneNumber);
+  }
+
+  @Post("resend-phone-otp")
+  async resendPhoneOtp(@Body('phoneNumber') phoneNumber: string) {
+    if (!phoneNumber) {
+      throw new BadRequestException('Phone number is required');
+    }
+    return this.authService.resendPhoneOtp(phoneNumber);
+  }
   @Get("profile")
   @UseGuards(JwtAuthGuard)
   async getProfile(@Req() req: RequestWithUser) {
@@ -99,12 +130,12 @@ export class AuthController {
   }
   @Post("login/send-otp")
   async sendLoginOtp(@Body() dto: EmailLoginDto) {
-    return this.authService.sendLoginOtp(dto);
+    return this.authService.sendEmailLoginOtp(dto);
   }
 
   @Post("login/verify-otp")
   async verifyLoginOtp(@Body() dto: VerifyEmailOtpDto) {
-    return this.authService.verifyLoginOtp(dto);
+    return this.authService.verifyOtp(dto);
   }
   @Post('resend-otp')
 async resendOtp(@Body('email') email: string) {
