@@ -28,6 +28,7 @@ import {
   VerifyEmailOtpDto,
   PhoneLoginDto,
   VerifyPhoneOtpDto,
+  ResetPasswordPhoneDto,
 } from "../../dto/auth.dto";
 import { MailService } from "common/nodemailer";
 import * as bcrypt from "bcryptjs";
@@ -364,7 +365,7 @@ export class AuthService {
         userName: user.fullName,
         purpose: "login",
       });
-      this.logger.log(`Login OTP email sent to ${user.email}`);
+      this.logger.log(`Login OTP email sent to ${user.email} and the otp is: ${otp}`);
     } catch (error) {
       this.logger.error(`Failed to send login OTP email to ${user.email}:`, error);
     }
@@ -436,7 +437,7 @@ export class AuthService {
         userName: user.fullName,
         purpose: "registration",
       });
-      this.logger.log(`OTP resent to ${user.email}`);
+      this.logger.log(`OTP resent to ${user.email} and the otp is: ${otp}`);
     } catch (error) {
       this.logger.error(`Failed to resend OTP email to ${user.email}:`, error);
     }
@@ -499,7 +500,7 @@ export class AuthService {
           purpose: "registration",
         });
         message += " to your email";
-        this.logger.log(`OTP resent to email: ${user.email}`);
+        this.logger.log(`OTP resent to email: ${user.email} and the otp is: ${otp}`);
       } catch (error) {
         this.logger.error(`Failed to resend OTP email to ${user.email}:`, error);
       }
@@ -511,7 +512,7 @@ export class AuthService {
       try {
         // await this.sendPhoneOtp(user.phoneNumber, otp, "registration");
         message += user.email ? " and phone" : " to your phone";
-        this.logger.log(`OTP resent to phone: ${user.phoneNumber}`);
+        this.logger.log(`OTP resent to phone: ${user.phoneNumber} and the otp is: ${otp}`);
       } catch (error) {
         this.logger.error(`Failed to resend OTP to phone ${user.phoneNumber}:`, error);
       }
@@ -561,7 +562,7 @@ export class AuthService {
           purpose: "registration",
         });
         message += " to your email";
-        this.logger.log(`OTP sent to email: ${user.email}`);
+        this.logger.log(`OTP sent to email: ${user.email} and the otp is: ${otp}` );
       } catch (error) {
         this.logger.error(`Failed to send OTP email to ${user.email}:`, error);
       }
@@ -573,7 +574,7 @@ export class AuthService {
       try {
         // await this.sendPhoneOtp(registerDto.phoneNumber, otp, "registration");
         message += registerDto.email ? " and phone" : " to your phone";
-        this.logger.log(`OTP sent to phone: ${registerDto.phoneNumber}`);
+        this.logger.log(`OTP sent to phone: ${registerDto.phoneNumber} and the otp is: ${otp}`);
       } catch (error) {
         this.logger.error(`Failed to send OTP to phone ${registerDto.phoneNumber}:`, error);
       }
@@ -590,6 +591,8 @@ export class AuthService {
     const otp = this.generateOtp();
     user.phoneOtp = otp;
     user.phoneOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    this.logger.log(`Login OTP email sent to ${user.phoneNumber} and the otp is: ${otp}`);
+
     await this.usersRepository.save(user);
 
     // await this.sendPhoneOtp(user.phoneNumber, otp, "verification");
@@ -670,7 +673,7 @@ export class AuthService {
         userName: user.fullName,
         purpose: "password_reset",
       });
-      this.logger.log(`Password reset OTP email sent to ${user.email}`);
+      this.logger.log(`Password reset OTP email sent to ${user.email} and the otp is: ${otp}`);
     } catch (error) {
       this.logger.error(`Failed to send password reset OTP email to ${user.email}:`, error);
     }
@@ -785,4 +788,52 @@ export class AuthService {
       ],
     });
   }
+  async forgotPasswordByPhone(phoneNumber: string): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOne({ where: { phoneNumber } });
+  
+    // Always return same message for security
+    if (!user) {
+      return { message: "If this phone number exists, a reset code has been sent" };
+    }
+  
+    const otp = this.generateOtp();
+    user.resetOtp = otp;
+    user.resetOtpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    await this.usersRepository.save(user);
+  
+    // Send SMS/WhatsApp if you want, for now just log
+    this.logger.log(`📱 Password reset OTP for ${user.phoneNumber}: ${otp}`);
+  
+    return { message: "If this phone number exists, a reset code has been sent" };
+  }
+  async resetPasswordByPhone({
+    phoneNumber,
+    otp,
+    newPassword,
+  }: ResetPasswordPhoneDto): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOne({ where: { phoneNumber } });
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+    
+    if (!user.resetOtp) {
+      throw new UnauthorizedException("Reset code not generated");
+    }
+    console.log(user.resetOtp)
+    console.log(otp)
+    if (user.resetOtp !== otp) {
+      throw new UnauthorizedException("Invalid reset code");
+    }
+    
+    if (!user.resetOtpExpiresAt || user.resetOtpExpiresAt < new Date()) {
+      throw new UnauthorizedException("Reset code expired");
+    }
+    user.passwordHash = await bcrypt.hash(newPassword, 12);
+    user.resetOtp = null;
+    user.resetOtpExpiresAt = null;
+    await this.usersRepository.save(user);
+  
+    return { message: "Password reset successfully" };
+  }
+  
 }

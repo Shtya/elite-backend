@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsPhoneNumber, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, isPhoneNumber, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 import { UserType } from '../entities/global.entity';
 
 export class LoginDto {
@@ -33,7 +33,8 @@ export class RegisterDto {
 
   // Optional now; we no longer use phone for auth
   @IsOptional()
-  @IsString()
+  @IsPhoneNumber()
+
   phoneNumber: string;
 
   @IsOptional()
@@ -79,6 +80,11 @@ export class ForgotPasswordDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
+  
+}
+export class ForgotPasswordPhoneDto {
+  @IsPhoneNumber()
+  phoneNumber: string;
 }
 
 export class ResetPasswordDto {
@@ -91,7 +97,15 @@ export class ResetPasswordDto {
   @MinLength(6)
   newPassword: string;
 }
+export class ResetPasswordPhoneDto {
 
+  @IsPhoneNumber()
+  phoneNumber: string;
+  @IsString()
+  otp: string;
+  @IsString()
+  newPassword: string;
+}
 export class UpdateProfileDto {
   @IsOptional()
   @IsString()

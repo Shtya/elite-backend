@@ -24,6 +24,8 @@ import {
   VerifyEmailOtpDto,
   PhoneLoginDto,
   VerifyPhoneOtpDto,
+  ForgotPasswordPhoneDto,
+  ResetPasswordPhoneDto,
 } from "../../dto/auth.dto";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { Request } from "express";
@@ -144,5 +146,14 @@ async resendOtp(@Body('email') email: string) {
   }
   return this.authService.resendOtp(email);
 }
+@Post("forgot-password/phone")
+async forgotPasswordPhone(@Body() dto: ForgotPasswordPhoneDto) {
+  return this.authService.forgotPasswordByPhone(dto.phoneNumber);
 
+  
+}
+@Post("reset-password/phone")
+async resetPasswordPhone(@Body() dto: ResetPasswordPhoneDto) {
+  return this.authService.resetPasswordByPhone(dto);
+}
 }
