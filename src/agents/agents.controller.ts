@@ -210,12 +210,12 @@ export class AgentsController {
   }
 
 
-  @Get('agents/:agentId/stats')
+  @Get(':agentId/stats')
   @Roles(UserType.ADMIN)
   async getAgentWalletStats(@Param('agentId') agentId: number) {
     return this.agentsService.getAgentWalletStats(agentId);
   }
-  @Post('agents/:agentId/payout')
+  @Post(':agentId/payout')
   @Roles(UserType.ADMIN)
   async createManualPayout(
     @Param('agentId') agentId: number,

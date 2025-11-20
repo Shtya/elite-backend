@@ -666,7 +666,7 @@ async createManualPayout(
   return await this.agentsRepository.manager.transaction(async (transactionalEntityManager) => {
     // Find agent
     const agent = await transactionalEntityManager.findOne(Agent, {
-      where: { user: { id: agentId } },
+      where: { id: agentId  },
     });
 
     if (!agent) {
