@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In } from 'typeorm';
-import { Appointment, AppointmentStatusHistory, AppointmentStatus, User, Property, NotificationType, NotificationChannel, UserType, AgentAppointmentRequest, Agent, AgentAppointmentRequestStatus, AgentApprovalStatus } from 'entities/global.entity';
+import { Appointment, AppointmentStatusHistory, AppointmentStatus, User, Property, NotificationType, NotificationChannel, UserType, AgentAppointmentRequest, Agent, AgentAppointmentRequestStatus, AgentApprovalStatus, AgentEarning, PaymentStatus, WalletTransaction } from 'entities/global.entity';
 import { CreateAppointmentDto, UpdateAppointmentDto, UpdateStatusDto, AppointmentQueryDto } from '../../dto/appointments.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
@@ -72,13 +72,14 @@ export class AppointmentsService {
       );
     }
   
-    // 4. Get all agents
+    // 4. Get all APPROVED agents
     const agents = await this.agentRepository.find({
       relations: ["cities", "areas", "user"],
-      where:{status:AgentApprovalStatus.APPROVED}
+      where: { status: AgentApprovalStatus.APPROVED }
     });
+    
     if (agents.length === 0) {
-      throw new NotFoundException("No agents found.");
+      throw new NotFoundException("No approved agents found.");
     }
   
     // 5. Create the appointment (status: PENDING)
@@ -86,34 +87,42 @@ export class AppointmentsService {
       ...createAppointmentDto,
       property,
       customer,
-      agent: null,
+      agent: null, // No agent assigned initially
       status: AppointmentStatus.PENDING,
     });
   
     const savedAppointment = await this.appointmentsRepository.save(appointment);
   
     // 6. Create agent requests & send notifications
+    const agentRequests = [];
+    
     for (const agent of agents) {
       let shouldSendRequest = false;
   
-      if (agent.cities.length > 1) {
-        // Multiple cities → match property city
-        shouldSendRequest = agent.cities.some(city => city.id === property.city.id);
-      } else if (agent.cities.length === 1) {
-        // Single city → match property area
-        shouldSendRequest = agent.areas.some(area => area.id === property.area.id);
+      // Check if agent serves this property's area
+      if (agent.cities && agent.cities.length > 0) {
+        if (agent.cities.length > 1) {
+          // Multiple cities → match property city
+          shouldSendRequest = agent.cities.some(city => city.id === property.city.id);
+        } else if (agent.cities.length === 1) {
+          // Single city → match property area
+          shouldSendRequest = agent.areas.some(area => area.id === property.area.id);
+        }
       }
   
       if (!shouldSendRequest) continue;
   
+      // Create agent appointment request
       const request = this.agentAppointmentRequestRepository.create({
         appointment: savedAppointment,
-        agent,
+        agent: agent.user, // Use agent.user (User entity) not agent (Agent entity)
         status: AppointmentStatus.PENDING,
       });
   
-      await this.agentAppointmentRequestRepository.save(request);
+      const savedRequest = await this.agentAppointmentRequestRepository.save(request);
+      agentRequests.push(savedRequest);
   
+      // Send notification to agent
       await this.notificationsService.createNotification({
         userId: agent.user.id,
         type: NotificationType.SYSTEM,
@@ -124,7 +133,15 @@ export class AppointmentsService {
       });
     }
   
-    // 7. Notify customer
+    // 7. If no agents were matched, update appointment status
+    if (agentRequests.length === 0) {
+      appointment.status = AppointmentStatus.REJECTED;
+      await this.appointmentsRepository.save(appointment);
+      
+      throw new NotFoundException("No agents available for this property location.");
+    }
+  
+    // 8. Notify customer
     await this.notificationsService.createNotification({
       userId: customer.id,
       type: NotificationType.APPOINTMENT_REMINDER,
@@ -134,7 +151,7 @@ export class AppointmentsService {
       channel: NotificationChannel.IN_APP,
     });
   
-    // 8. Notify admin
+    // 9. Notify admin
     await this.notificationsService.notifyUserType(UserType.ADMIN, {
       type: NotificationType.SYSTEM,
       title: "New Appointment Created",
@@ -145,7 +162,6 @@ export class AppointmentsService {
   
     return savedAppointment;
   }
-  
   
   
   
@@ -475,91 +491,210 @@ export class AppointmentsService {
     return this.appointmentsRepository.save(appointment);
   }
   async updateAppointmentFinalStatus(
-    appointmentId: number,
+    requestId: number,
     status: AppointmentStatus,   // "completed" | "expired"
     changedBy: User,             // pass the logged-in user here
     notes?: string
-  ): Promise<Appointment> {
+  ): Promise<{ appointment: Appointment; request: AgentAppointmentRequest }> {
   
-    // 1️⃣ Fetch appointment
-    const appointment = await this.findOne(appointmentId);
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found.');
-    }
+    // Use transaction to ensure all operations succeed or fail together
+    const result = await this.appointmentsRepository.manager.transaction(async (transactionalEntityManager) => {
+      
+      // 1️⃣ Find the agent appointment request by requestId
+      const request = await transactionalEntityManager.findOne(AgentAppointmentRequest, {
+        where: {
+          id: requestId,
+          status: AppointmentStatus.ACCEPTED,
+        },
+        relations: ['appointment', 'appointment.property', 'appointment.customer', 'appointment.agent', 'agent', 'agent.user'],
+      });
   
-    const now = new Date();
-    const startDateTime = this.combineDateTime(appointment.appointmentDate, appointment.startTime);
-    const endDateTime = this.combineDateTime(appointment.appointmentDate, appointment.endTime);
-    const oldStatus = appointment.status;
+      if (!request) {
+        throw new NotFoundException('Agent appointment request not found or not accepted.');
+      }
   
-    // // 2️⃣ Validate status transition rules
-    // if (status === AppointmentStatus.COMPLETED && now < endDateTime) {
-    //   throw new BadRequestException(`Cannot mark as completed before ${appointment.endTime}.`);
-    // }
+      const appointment = request.appointment;
+      const oldStatus = appointment.status;
   
-    // if (status === AppointmentStatus.EXPIRED && now < startDateTime) {
-    //   throw new BadRequestException('Cannot mark as expired before the appointment start time.');
-    // }
+      // 2️⃣ Validate status transition
+      if (oldStatus === status) {
+        throw new BadRequestException(`Appointment is already ${status}.`);
+      }
   
-    // 3️⃣ Find accepted agent request
-    const request = await this.agentAppointmentRequestRepository.findOne({
-      where: {
-        id:appointmentId,
-        status: AppointmentStatus.ACCEPTED,
-      },
+      let walletTransaction: WalletTransaction | null = null;
+  
+      // 3️⃣ If status is COMPLETED, add visit amount to agent's wallet and update statistics
+      if (status === AppointmentStatus.COMPLETED && request.agent) {
+        const agent = await transactionalEntityManager.findOne(Agent, {
+          where: { id: request.agent.id },
+        });
+  
+        if (!agent) {
+          throw new NotFoundException('Agent not found.');
+        }
+  
+        // Check if commission was already added
+        if (request.isCommissionAdded) {
+          throw new BadRequestException('Commission has already been added for this appointment.');
+        }
+  
+        // Add visit amount to agent's wallet balance
+        const visitAmount = agent.visteAmount || 0;
+        
+        if (visitAmount <= 0) {
+          throw new BadRequestException('Visit amount is not set for this agent.');
+        }
+        
+        const oldWalletBalance = Number(agent.walletBalance);
+        const newWalletBalance = oldWalletBalance + Number(visitAmount);
+        
+        // Update agent wallet and statistics
+        agent.walletBalance = newWalletBalance;
+        agent.totalEarned = Number(agent.totalEarned) + Number(visitAmount);
+        agent.completedAppointments += 1; // Increment completed appointments
+        agent.totalTransactions += 1; // Increment total transactions
+        
+        // Update commission amount in the request
+        request.commissionAmount = visitAmount;
+        request.isCommissionAdded = true;
+        request.commissionAddedAt = new Date();
+  
+        // Create AgentEarning record
+        const earning = transactionalEntityManager.create(AgentEarning, {
+          agent: agent.user,
+          amount: visitAmount,
+          type: 'appointment_commission',
+          agentAppointmentRequestId: request.id,
+          description: `Visit commission for appointment #${appointment.id}`,
+          addedBy: changedBy,
+        });
+  
+        // Save agent, request, and earning within transaction
+        await transactionalEntityManager.save(Agent, agent);
+        await transactionalEntityManager.save(AgentAppointmentRequest, request);
+        await transactionalEntityManager.save(AgentEarning, earning);
+  
+        // Create Wallet Transaction record for audit
+        walletTransaction = transactionalEntityManager.create(WalletTransaction, {
+          agent: agent.user,
+          status: PaymentStatus.COMPLETED,
+          transactionType: 'earning',
+          amount: visitAmount,
+          balanceBefore: oldWalletBalance,
+          balanceAfter: newWalletBalance,
+          description: `Commission from completed appointment #${appointment.id}`,
+          agentAppointmentRequest: request,
+          appointment: appointment,
+          processedBy: changedBy,
+          notes: `Automatic commission for completed appointment`,
+        });
+  
+        walletTransaction = await transactionalEntityManager.save(WalletTransaction, walletTransaction);
+      }
+  
+      // 4️⃣ If status is EXPIRED, still update the request status but don't add commission
+      if (status === AppointmentStatus.EXPIRED && request.agent) {
+        const agent = await transactionalEntityManager.findOne(Agent, {
+          where: { id: request.agent.id },
+        });
+  
+        if (agent) {
+          // Increment total transactions even for expired appointments
+          agent.totalTransactions += 1;
+          await transactionalEntityManager.save(Agent, agent);
+        }
+      }
+  
+      // 5️⃣ Update statuses
+      appointment.status = status;
+      request.status = status;
+  
+      // Save both appointment and request within transaction
+      await transactionalEntityManager.save(AgentAppointmentRequest, request);
+      const updatedAppointment = await transactionalEntityManager.save(Appointment, appointment);
+  
+      // 6️⃣ Save status history within transaction
+      const statusHistory = transactionalEntityManager.create(AppointmentStatusHistory, {
+        appointment,
+        oldStatus,
+        newStatus: status,
+        changedBy,
+        notes,
+      });
+      await transactionalEntityManager.save(AppointmentStatusHistory, statusHistory);
+  
+      return {
+        appointment: updatedAppointment,
+        request: request,
+        walletTransaction: walletTransaction
+      };
     });
   
-    if (!request) {
-      throw new NotFoundException('No accepted agent request found for this appointment.');
-    }
+    // 7️⃣ Send notifications after successful transaction
+    try {
+      const statusMessages = {
+        [AppointmentStatus.COMPLETED]: 'Your appointment has been marked as completed.',
+        [AppointmentStatus.EXPIRED]: 'Your appointment has expired.',
+      };
   
-    // 4️⃣ Update statuses
-    appointment.status = status;
-    request.status = status;
-  
-    // Save both appointment and request atomically
-    await this.agentAppointmentRequestRepository.save(request);
-    await this.appointmentsRepository.save(appointment);
-  
-    // 5️⃣ Save status history
-    const statusHistory = this.statusHistoryRepository.create({
-      appointment,
-      oldStatus,
-      newStatus: status,
-      changedBy,
-      notes,
-    });
-    await this.statusHistoryRepository.save(statusHistory);
-  
-    // 6️⃣ Send notifications
-    const statusMessages = {
-      completed: 'Your appointment has been marked as completed.',
-      expired: 'Your appointment has expired.',
-    };
-  
-    
-    await this.notificationsService.createNotification({
-      userId: appointment.customer.id,
-      type: NotificationType.APPOINTMENT_REMINDER,
-      title: 'Appointment Status Updated',
-      message: statusMessages[status],
-      relatedId: appointment.id,
-      channel: NotificationChannel.IN_APP,
-    });
-  
-    if (appointment.agent) {
+      // Notify customer
       await this.notificationsService.createNotification({
-        userId: appointment.agent.id,
+        userId: result.appointment.customer.id,
         type: NotificationType.APPOINTMENT_REMINDER,
         title: 'Appointment Status Updated',
         message: statusMessages[status],
-        relatedId: appointment.id,
+        relatedId: result.appointment.id,
         channel: NotificationChannel.IN_APP,
       });
+  
+      // Notify agent
+      if (result.appointment.agent) {
+        await this.notificationsService.createNotification({
+          userId: result.appointment.agent.id,
+          type: NotificationType.APPOINTMENT_REMINDER,
+          title: 'Appointment Status Updated',
+          message: statusMessages[status],
+          relatedId: result.appointment.id,
+          channel: NotificationChannel.IN_APP,
+        });
+  
+        // Send commission notification only for completed status
+        if (status === AppointmentStatus.COMPLETED && result.request.agent) {
+          const agent = await this.agentRepository.findOne({
+            where: { id: result.request.agent.id },
+          });
+          
+          if (agent) {
+            const visitAmount = agent.visteAmount || 0;
+            await this.notificationsService.createNotification({
+              userId: result.appointment.agent.id,
+              type: NotificationType.SYSTEM,
+              title: 'Commission Added',
+              message: `SAR ${visitAmount} has been added to your wallet for completing appointment #${result.appointment.id}. You now have SAR ${agent.walletBalance} available in your wallet.`,
+              relatedId: result.appointment.id,
+              channel: NotificationChannel.IN_APP,
+            });
+  
+            // Also notify admin about the commission payout
+            await this.notificationsService.notifyUserType(UserType.ADMIN, {
+              type: NotificationType.SYSTEM,
+              title: 'Agent Commission Paid',
+              message: `Agent ${agent.user.fullName} received SAR ${visitAmount} commission for completed appointment #${result.appointment.id}`,
+              relatedId: result.appointment.id,
+              channel: NotificationChannel.IN_APP,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to send notifications:', error);
+      // Don't throw error here as notifications are not critical
     }
   
-    return appointment;
+    return {
+      appointment: result.appointment,
+      request: result.request
+    };
   }
-  
   
 }

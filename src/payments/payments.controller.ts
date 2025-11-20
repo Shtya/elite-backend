@@ -52,11 +52,11 @@ export class PaymentsController {
     return this.paymentsService.update(+id, updatePaymentDto);
   }
 
-  @Post(':id/process')
-  @Roles(UserType.ADMIN)
-  processPayment(@Param('id') id: string, @Body() processPaymentDto: ProcessPaymentDto) {
-    return this.paymentsService.processPayment(+id, processPaymentDto);
-  }
+  // @Post(':id/process')
+  // @Roles(UserType.ADMIN)
+  // processPayment(@Param('id') id: string, @Body() processPaymentDto: ProcessPaymentDto) {
+  //   return this.paymentsService.processPayment(+id, processPaymentDto);
+  // }
 
   @Post(':id/complete')
   @Roles(UserType.ADMIN)

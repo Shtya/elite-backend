@@ -21,14 +21,16 @@ import {
   CreateAgentDto,
   UpdateAgentDto,
   ApproveAgentDto,
+  UpdateVisitAmountDto,
 } from "../../dto/agents.dto";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { RolesGuard } from "../auth/guards/roles.guard";
 import { Roles } from "../auth/decorators/roles.decorator";
-import { UserType } from "entities/global.entity";
+import { Role, UserRole, UserType } from "entities/global.entity";
 import { CRUD } from "common/crud.service";
 import { RegisterDto } from "dto/auth.dto";
 import { Request } from "express";
+import { CreatePayoutDto } from "dto/create-payment.dto";
 
 interface RequestWithUser extends Request {
   user: any;
@@ -205,5 +207,56 @@ export class AgentsController {
   @Roles(UserType.ADMIN, UserType.QUALITY)
   findByUserId(@Param("userId") userId: string) {
     return this.agentsService.findByUserId(+userId);
+  }
+
+
+  @Get('agents/:agentId/stats')
+  @Roles(UserType.ADMIN)
+  async getAgentWalletStats(@Param('agentId') agentId: number) {
+    return this.agentsService.getAgentWalletStats(agentId);
+  }
+  @Post('agents/:agentId/payout')
+  @Roles(UserType.ADMIN)
+  async createManualPayout(
+    @Param('agentId') agentId: number,
+    @Body() createPayoutDto: CreatePayoutDto,
+    @Req() req: RequestWithUser
+  ) {
+    const adminUser = req.user;
+    return this.agentsService.createManualPayout(
+      agentId,
+      createPayoutDto.amount,
+      adminUser,
+      createPayoutDto.notes
+    );
+  }
+
+  @Get()
+  async getPayouts(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+    @Query() filters: any
+  ) {
+    return this.agentsService.getPayouts(page, limit, filters);
+  }
+
+  @Get('summary')
+  async getPayoutSummary() {
+    return this.agentsService.getPayoutSummary();
+  }
+  @Roles(UserType.ADMIN)
+  @Patch(':agentId/visit-amount')
+  async updateAgentVisitAmount(
+    @Param('agentId') agentId: number,
+    @Body() updateVisitAmountDto: UpdateVisitAmountDto,
+    @Req() req: any
+  ) {
+    const adminUser = req.user;
+    return this.agentsService.updateAgentVisitAmount(
+      agentId,
+      updateVisitAmountDto.visitAmount,
+      adminUser,
+      updateVisitAmountDto.notes
+    );
   }
 }

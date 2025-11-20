@@ -456,7 +456,7 @@ export const seedPayments = async (dataSource: DataSource) => {
     },
   ];
 
-  await paymentRepository.save(payments);
+  // await paymentRepository.save(payments);
 
   // Seed Agent Balances
   const balanceData = agents.map(agent => ({

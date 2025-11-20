@@ -35,12 +35,12 @@ export class PaymentsService {
     }
 
     // Check if payment already exists for this appointment
-    const existingPayment = await this.paymentsRepository.findOne({
-      where: { appointment: { id: createPaymentDto.appointmentId } },
-    });
-    if (existingPayment) {
-      throw new BadRequestException('Payment already exists for this appointment');
-    }
+    // const existingPayment = await this.paymentsRepository.findOne({
+    //   where: { appointment: { id: createPaymentDto.appointmentId } },
+    // });
+    // if (existingPayment) {
+    //   throw new BadRequestException('Payment already exists for this appointment');
+    // }
 
     const payment: any = await this.paymentsRepository.create({
       ...createPaymentDto,
@@ -110,21 +110,21 @@ export class PaymentsService {
     return this.paymentsRepository.save(payment);
   }
 
-  async processPayment(id: number, processPaymentDto: ProcessPaymentDto): Promise<AgentPayment> {
-    const payment = await this.findOne(id);
+  // async processPayment(id: number, processPaymentDto: ProcessPaymentDto): Promise<AgentPayment> {
+  //   const payment = await this.findOne(id);
 
-    if (payment.status !== PaymentStatus.PENDING) {
-      throw new BadRequestException('Payment can only be processed when in pending status');
-    }
+  //   if (payment.status !== PaymentStatus.PENDING) {
+  //     throw new BadRequestException('Payment can only be processed when in pending status');
+  //   }
 
-    payment.status = PaymentStatus.PROCESSING;
-    payment.gateway = processPaymentDto.gateway;
-    if (processPaymentDto.transactionId) {
-      payment.transactionId = processPaymentDto.transactionId;
-    }
+  //   payment.status = PaymentStatus.PROCESSING;
+  //   payment.gateway = processPaymentDto.gateway;
+  //   if (processPaymentDto.transactionId) {
+  //     payment.transactionId = processPaymentDto.transactionId;
+  //   }
 
-    return this.paymentsRepository.save(payment);
-  }
+  //   return this.paymentsRepository.save(payment);
+  // }
 
   async completePayment(id: number): Promise<AgentPayment> {
     const payment = await this.findOne(id);
@@ -138,16 +138,16 @@ export class PaymentsService {
 
     const savedPayment = await this.paymentsRepository.save(payment);
 
-    // Update agent balance
-    await this.updateAgentBalance(payment.agent.id, parseFloat(payment.amount.toString()));
-    await this.notificationsService.createNotification({
-      userId: payment.agent.id,
-      type: NotificationType.SYSTEM,
-      title: 'Payment Received',
-      message: `Congratulations! Your payment of ${payment.amount} ${payment.currency} has been received successfully.`,
-      relatedId: payment.id,
-      channel: NotificationChannel.IN_APP,
-    });
+    // // Update agent balance
+    // await this.updateAgentBalance(payment.agent.id, parseFloat(payment.amount.toString()));
+    // await this.notificationsService.createNotification({
+    //   userId: payment.agent.id,
+    //   type: NotificationType.SYSTEM,
+    //   title: 'Payment Received',
+    //   message: `Congratulations! Your payment of ${payment.amount} ${payment.currency} has been received successfully.`,
+    //   relatedId: payment.id,
+    //   channel: NotificationChannel.IN_APP,
+    // });
 
     return savedPayment;
   }
