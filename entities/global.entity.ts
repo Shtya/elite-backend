@@ -290,7 +290,7 @@
     @Column({ name: "phone_number", type: "varchar", length: 20, unique: true ,nullable: true})
     phoneNumber: string;
 
-    @Column({ type: "varchar", length: 255, unique: true,nullable:true })
+    @Column({ type: "varchar", length: 400, unique: true,nullable:true })
     email: string;
 
     @Column({ name: "full_name", type: "varchar", length: 255 })
