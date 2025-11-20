@@ -11,6 +11,7 @@ import {
   UseGuards,
   Req,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { TrafficService } from './traffic.service';
@@ -18,6 +19,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserType } from 'entities/global.entity';
+import { TrackVisitorDto } from './traffic.service';
 
 @Controller('traffic')
 export class TrafficController {
@@ -80,13 +82,17 @@ export class TrafficController {
 
   // -------- Tracking (Public) --------
   @Post('track')
-  track(@Body() body: any, @Req() req: Request) {
-    // body: { visitedUrl, landingPage?, referralCode, campaignId, utmSource?, utmCampaign?, utmContent? }
-    // التلقّط التلقائي لـ UA/IP
-    body.userAgent = body.userAgent ?? req.headers['user-agent'];
-    const fwd = (req.headers['x-forwarded-for'] as string) || '';
-    body.ipAddress = body.ipAddress ?? (fwd.split(',')[0]?.trim() || req.socket.remoteAddress || '');
-    return this.service.trackVisitor(body);
+  async track(@Body() body: TrackVisitorDto, @Req() req: Request) {
+    // Basic validation
+    if (!body.visitedUrl) {
+      throw new BadRequestException("visitedUrl is required");
+    }
+    if (!body.referralCode) {
+      throw new BadRequestException("referralCode is required");
+    }
+  
+    // Let the service handle IP/UA extraction and duplicate checking
+    return await this.service.trackVisitor(body, req);
   }
 
   // -------- Conversions (Admin/Marketer) --------

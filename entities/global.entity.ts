@@ -1060,7 +1060,13 @@ export class AgentAppointmentRequest extends CoreEntity {
 
     @Column({ type: "varchar", length: 32, nullable: true })
     type: ConversionType;
-
+    @Column({ 
+      name: "ip_address", 
+      type: "varchar", 
+      length: 45, 
+      nullable: true 
+    })
+    ipAddress?: string | null;
     @Column({ name: "converted_at", type: "timestamptz", default: () => "NOW()" })
     convertedAt: Date;
   }

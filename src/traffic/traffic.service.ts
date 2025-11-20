@@ -41,7 +41,7 @@ interface BuildShareUrlDto {
   utm?: { utm_source?: string; utm_campaign?: string; utm_content?: string };
 }
 
-interface TrackVisitorDto {
+export interface TrackVisitorDto {
   visitedUrl: string;
   landingPage?: string;
   referralCode: string; // Required (نلتزم به)
@@ -304,12 +304,20 @@ export class TrafficService {
     await this.partnerRepo.remove(partner);
     return { deleted: true };
   }
-
-  async trackVisitor(dto: TrackVisitorDto) {
+  async trackVisitor(dto: TrackVisitorDto, req?: any) {
     if (!dto.referralCode)
       throw new BadRequestException("referralCode is required");
   
-    // ✅ Find the partner by referral code
+    let ipAddress = dto.ipAddress;
+    let userAgent = dto.userAgent;
+  
+    if (req && !ipAddress) {
+      ipAddress = this.extractIpAddress(req);
+    }
+    if (req && !userAgent) {
+      userAgent = req.headers['user-agent'];
+    }
+  
     const partner = await this.partnerRepo.findOne({
       where: { referralCode: dto.referralCode, isActive: true },
       relations: ["campaign"],
@@ -319,6 +327,31 @@ export class TrafficService {
       throw new NotFoundException(
         "Partner (by referralCode) not found or inactive"
       );
+  
+    // ✅ Check for duplicate visits from same IP within last 24 hours
+    if (ipAddress) {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      const existingVisit = await this.visitRepo.findOne({
+        where: {
+          ipAddress: ipAddress,
+          referralCode: dto.referralCode,
+          createdAt: MoreThanOrEqual(twentyFourHoursAgo)
+        },
+        order: { createdAt: 'DESC' }
+      });
+  
+      if (existingVisit) {
+        // Return existing visit ID instead of creating duplicate
+        return { 
+          visitorId: existingVisit.id,
+          ipAddress: existingVisit.ipAddress,
+          userAgent: existingVisit.userAgent,
+          isDuplicate: true,
+          previousVisitAt: existingVisit.createdAt
+        };
+      }
+    }
   
     // ✅ Try to resolve campaign (optional)
     let campaign: Campaign | null = null;
@@ -363,18 +396,42 @@ export class TrafficService {
       utmSource,
       utmCampaign,
       utmContent: dto.utmContent ?? null,
-      userAgent: dto.userAgent ?? null,
-      ipAddress: dto.ipAddress ?? null,
+      userAgent: userAgent ?? null,
+      ipAddress: ipAddress ?? null,
       referralCode: dto.referralCode,
       partner,
       campaign: campaign ?? null, // ✅ allow null
     });
   
     const saved = await this.visitRepo.save(visit);
-    return { visitorId: saved.id };
+    return { 
+      visitorId: saved.id,
+      ipAddress: saved.ipAddress,
+      userAgent: saved.userAgent,
+      isDuplicate: false
+    };
   }
   
-
+  // Helper method to extract IP address from request
+  private extractIpAddress(req: any): string | null {
+    const headers = [
+      'x-forwarded-for',
+      'x-real-ip',
+      'x-client-ip',
+      'cf-connecting-ip',
+      'true-client-ip',
+      'x-cluster-client-ip'
+    ];
+  
+    for (const header of headers) {
+      const ip = req.headers[header];
+      if (ip) {
+        return Array.isArray(ip) ? ip[0] : ip.split(',')[0].trim();
+      }
+    }
+  
+    return req.connection?.remoteAddress || req.socket?.remoteAddress || null;
+  }
   // ============ Conversions ============
   async createConversion(dto: CreateConversionDto,userId: number) {
     if (!userId) throw new BadRequestException("userId is required");

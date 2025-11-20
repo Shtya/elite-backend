@@ -53,6 +53,11 @@ export class TrackVisitorDto {
   @IsNotEmpty()
   @IsString()
   visitedUrl: string;
+  @IsOptional()
+  @IsNumber()
+  campaignId?: number;
+
+
 }
 
 export class CreateConversionDto {
