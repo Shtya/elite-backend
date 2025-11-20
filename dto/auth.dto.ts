@@ -1,6 +1,7 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, isPhoneNumber, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 import { UserType } from '../entities/global.entity';
 import { Optional } from '@nestjs/common';
+import { Type } from 'class-transformer';
 
 export class LoginDto {
   @IsOptional()
@@ -45,6 +46,11 @@ export class RegisterDto {
   
   @IsOptional()
   residencyDocument?: string;
+@Optional()
+@Type(() => Number) 
+@IsNumber()
+visitAmount?:number
+
 }
 
 export class VerifyOtpDto {

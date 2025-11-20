@@ -539,7 +539,7 @@ export class AppointmentsService {
         }
   
         // Add visit amount to agent's wallet balance
-        const visitAmount = agent.visteAmount || 0;
+        const visitAmount = agent.visitAmount || 0;
         
         if (visitAmount <= 0) {
           throw new BadRequestException('Visit amount is not set for this agent.');
@@ -665,7 +665,7 @@ export class AppointmentsService {
           });
           
           if (agent) {
-            const visitAmount = agent.visteAmount || 0;
+            const visitAmount = agent.visitAmount || 0;
             await this.notificationsService.createNotification({
               userId: result.appointment.agent.id,
               type: NotificationType.SYSTEM,

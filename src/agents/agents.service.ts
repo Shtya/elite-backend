@@ -309,7 +309,7 @@ async getDashboard(agentId: number) {
 }
 
 async registerAgent(
-  registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[],visteAmount?:number },
+  registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[]},
   files?: {
     identityProof?: Express.Multer.File[];
     residencyDocument?: Express.Multer.File[];
@@ -359,11 +359,10 @@ async registerAgent(
       channel: NotificationChannel.IN_APP,
     });
   }
-
   // 5️⃣ Create agent entity
   const agent = this.agentsRepository.create({
     user,
-    visteAmount:registerDto.visteAmount,
+    visitAmount:registerDto.visitAmount,
     identityProofUrl: files?.identityProof?.[0]
       ? `/uploads/images/${files.identityProof[0].filename}`
       : undefined,
@@ -371,13 +370,13 @@ async registerAgent(
       ? `/uploads/images/${files.residencyDocument[0].filename}`
       : undefined,
   });
-
+  console.log(agent)
   // 6️⃣ Resolve city & area assignment
   const { cities, areas } = await this.resolveCityAndAreaSelection(
     registerDto.cityIds,
     registerDto.areaIds ?? []
   );
-
+  agent.visitAmount = registerDto.visitAmount
   agent.cities = cities;
   agent.areas = areas;
 
@@ -616,10 +615,10 @@ async updateAgentVisitAmount(
       throw new BadRequestException('Visit amount cannot exceed 10,000 SAR');
     }
 
-    const oldVisitAmount = agent.visteAmount || 0;
+    const oldVisitAmount = agent.visitAmount || 0;
 
     // Only update the visit amount
-    agent.visteAmount = visitAmount;
+    agent.visitAmount = visitAmount;
     agent.updatedBy = adminUser;
 
     // Save agent

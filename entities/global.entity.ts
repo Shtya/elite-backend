@@ -1226,7 +1226,7 @@ export class AgentAppointmentRequest extends CoreEntity {
       scale: 2,
       default: 0
     })
-    visteAmount: number;
+    visitAmount: number;
 
     @Column({
       name: "completed_appointments",
