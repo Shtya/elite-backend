@@ -130,7 +130,7 @@ export class AgentsController {
       ]),
     )
   async registerAgent(
-    @Body() registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[] },
+    @Body() registerDto: RegisterDto & {cityIds: any[]; areaIds?: any[], visitAmount?:number,},
     @UploadedFiles() files?: { identityProof?: Express.Multer.File[]; residencyDocument?: Express.Multer.File[], profilePhotoUrl?: Express.Multer.File[] },
   ) {
     if (typeof registerDto.cityIds === 'string' && registerDto.cityIds === 'all') {

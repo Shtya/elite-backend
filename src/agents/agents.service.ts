@@ -309,7 +309,7 @@ async getDashboard(agentId: number) {
 }
 
 async registerAgent(
-  registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[] },
+  registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[],visteAmount?:number },
   files?: {
     identityProof?: Express.Multer.File[];
     residencyDocument?: Express.Multer.File[];
@@ -363,6 +363,7 @@ async registerAgent(
   // 5️⃣ Create agent entity
   const agent = this.agentsRepository.create({
     user,
+    visteAmount:registerDto.visteAmount,
     identityProofUrl: files?.identityProof?.[0]
       ? `/uploads/images/${files.identityProof[0].filename}`
       : undefined,

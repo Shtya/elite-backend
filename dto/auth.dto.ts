@@ -1,5 +1,6 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, isPhoneNumber, IsPhoneNumber, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsNumber, IsOptional, isPhoneNumber, IsPhoneNumber, IsString, MinLength } from 'class-validator';
 import { UserType } from '../entities/global.entity';
+import { Optional } from '@nestjs/common';
 
 export class LoginDto {
   @IsOptional()
