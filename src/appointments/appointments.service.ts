@@ -507,7 +507,7 @@ export class AppointmentsService {
           id: requestId,
           status: AppointmentStatus.ACCEPTED,
         },
-        relations: ['appointment', 'appointment.property', 'appointment.customer', 'appointment.agent', 'agent', 'agent.user'],
+        relations: ['appointment', 'appointment.property', 'appointment.customer', 'appointment.agent', 'agent'],
       });
   
       if (!request) {
