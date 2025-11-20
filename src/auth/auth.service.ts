@@ -233,7 +233,7 @@ export class AuthService {
   /**
    * Universal OTP verification that works for both email and phone
    */
-  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<{ accessToken: string; refreshToken: string,user :User }> {
     let user: User;
 
     if (verifyOtpDto.email) {
@@ -302,13 +302,13 @@ export class AuthService {
       channel: NotificationChannel.IN_APP,
     });
 
-    return this.generateTokens(user);
+    return { ...await this.generateTokens(user), user };
   }
 
   /**
    * Universal login that supports both email and phone with password
    */
-  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(loginDto: LoginDto): Promise<{ accessToken: string; refreshToken: string,user:User }> {
     let user: User;
 
     if (loginDto.email) {
@@ -340,7 +340,7 @@ export class AuthService {
       throw new UnauthorizedException("Your account has been deactivated. Please contact support.");
     }
 
-    return this.generateTokens(user);
+    return { ...await this.generateTokens(user), user };
   }
 
   /**
