@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { Agent, AgentAppointmentRequest, AgentApprovalStatus, AgentBalance, AgentPayment, Appointment, AppointmentStatus, Area, City, CustomerReview, NotificationChannel, NotificationType, PaymentStatus, User, UserType, VerificationStatus, WalletTransaction } from 'entities/global.entity';
 import { CreateAgentDto, UpdateAgentDto, ApproveAgentDto, AgentQueryDto } from '../../dto/agents.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -262,51 +262,269 @@ export class AgentsService {
 
     return agent;
   }
-async getDashboard(agentId: number) {
-  const agent = await this.agentsRepository.findOne({where:{user:{id:agentId}}});
-  if (!agent) {
-    throw new NotFoundException('Agent not found for this user');
-  }
-
-  const totalAppointments = await this.appointmentRepo.count({
-    where: { agent: { id: agent.id } },
-  });
-  const balance = await this.balanceRepo.findOne({ where: { agent: { id: agent.id } } });
-
-  const recentPayments = await this.paymentRepo.find({
-    where: { agent: { id: agent.id } },
-    order: { createdAt: 'DESC' },
-    take: 5,
-  });
-
-  const reviews = await this.reviewRepo.find({
-    where: { agentId:agent.id },
-    order: { createdAt: 'DESC' },
-    take: 5,
-  });
-
-  const averageRating =
-    reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
-
-  const recentAppointments = await this.appointmentRepo.find({
-    where: { agent: { id: agent.id } },
-    order: { appointmentDate: 'DESC' },
-    take: 5,
-    relations: ['customer', 'property'],
-  });
-
-  return {
-    stats: {
+  async getDashboard(agentId: number, page: number = 1, limit: number = 10, filters?: any) {
+    const agent = await this.agentsRepository.findOne({
+      where: { user: { id: agentId } },
+      relations: ['user', 'earnings', 'payments', 'walletTransactions']
+    });
+  
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
+  
+    // Run all queries in parallel for better performance
+    const [
       totalAppointments,
-      totalEarnings: balance?.totalEarnings || 0,
-      pendingBalance: balance?.pendingBalance || 0,
-      averageRating,
-    },
-    recentPayments,
-    recentReviews: reviews,
-    recentAppointments,
-  };
-}
+      reviews,
+      recentAppointments,
+      recentPayments,
+      appointmentStats,
+      walletStats,
+      payoutHistory
+    ] = await Promise.all([
+      // Total appointments count
+      this.appointmentRepo.count({
+        where: { agent: { id: agent.id } },
+      }),
+  
+      // Recent reviews
+      this.reviewRepo.find({
+        where: { agentId: agent.id },
+        order: { createdAt: 'DESC' },
+        take: 5,
+      }),
+  
+      // Recent appointments
+      this.appointmentRepo.find({
+        where: { agent: { id: agent.id } },
+        order: { appointmentDate: 'DESC' },
+        take: 5,
+        relations: ['customer', 'property'],
+      }),
+  
+      // Recent payments
+      this.paymentRepo.find({
+        where: { agent: { id: agent.id } },
+        order: { createdAt: 'DESC' },
+        take: 5,
+      }),
+  
+      // Appointment statistics
+      this.getAppointmentStats(agent.id),
+  
+      // Wallet statistics
+      this.getWalletStats(agent),
+  
+      // Payout history with pagination
+      this.getPayoutHistory(agent.id, page, limit, filters)
+    ]);
+  
+    // Calculate average rating
+    const averageRating = reviews.length > 0 
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
+      : 0;
+  
+    return {
+      agent: {
+        id: agent.id,
+        name: agent.user.fullName,
+        email: agent.user.email,
+        phoneNumber: agent.user.phoneNumber,
+        profilePhotoUrl: agent.user.profilePhotoUrl,
+        visitAmount: agent.visitAmount,
+        walletBalance: agent.walletBalance,
+        totalEarned: agent.totalEarned,
+        totalPaid: agent.totalPaid,
+        completedAppointments: agent.completedAppointments,
+        totalTransactions: agent.totalTransactions,
+        lastPayoutDate: agent.lastPayoutDate,
+      },
+      
+      overview: {
+        totalAppointments,
+        averageRating,
+        walletBalance: agent.walletBalance,
+        availableForPayout: agent.walletBalance,
+        totalEarned: agent.totalEarned,
+        totalPaid: agent.totalPaid,
+      },
+  
+      statistics: {
+        // Appointment statistics
+        appointmentStats,
+        
+        // Wallet statistics
+        walletStats,
+        
+        // Performance metrics
+        performance: {
+          averageEarningPerAppointment: agent.completedAppointments > 0 
+            ? agent.totalEarned / agent.completedAppointments 
+            : 0,
+          completionRate: totalAppointments > 0 
+            ? (agent.completedAppointments / totalAppointments) * 100 
+            : 0,
+          monthlyEarningTrend: await this.getMonthlyEarningTrend(agent.id)
+        }
+      },
+  
+      recentActivity: {
+        payments: recentPayments,
+        reviews: reviews,
+        appointments: recentAppointments,
+      },
+  
+      payoutHistory: payoutHistory
+    };
+  }
+  
+  // Helper method for appointment statistics
+  private async getAppointmentStats(agentId: number) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+    const [
+      totalAccepted,
+      totalCompleted,
+      totalExpired,
+      totalCancelled,
+      totalRejected,
+      recentCompleted
+    ] = await Promise.all([
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.ACCEPTED,
+        agent: { id: agentId },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.COMPLETED,
+        agent: { id: agentId },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.EXPIRED,
+        agent: { id: agentId },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.CANCELLED,
+        agent: { id: agentId },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.REJECTED,
+        agent: { id: agentId },
+      }),
+      this.agentAppointmentRepository.countBy({
+        status: AppointmentStatus.COMPLETED,
+        agent: { id: agentId },
+        createdAt: MoreThanOrEqual(thirtyDaysAgo)
+      })
+    ]);
+  
+    return {
+      accepted: totalAccepted,
+      completed: totalCompleted,
+      expired: totalExpired,
+      cancelled: totalCancelled,
+      rejected: totalRejected,
+      recentCompleted: recentCompleted,
+      successRate: totalAccepted > 0 ? (totalCompleted / totalAccepted) * 100 : 0
+    };
+  }
+  
+  // Helper method for wallet statistics
+  private async getWalletStats(agent: Agent) {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+    const [recentEarnings, recentPayouts, totalTransactions] = await Promise.all([
+      this.walletTransactionRepository
+        .createQueryBuilder('wt')
+        .where('wt.agent_id = :agentId', { agentId: agent.user.id })
+        .andWhere('wt.transaction_type = :type', { type: 'earning' })
+        .andWhere('wt.created_at >= :date', { date: thirtyDaysAgo })
+        .select('SUM(wt.amount)', 'total')
+        .getRawOne(),
+  
+      this.walletTransactionRepository
+        .createQueryBuilder('wt')
+        .where('wt.agent_id = :agentId', { agentId: agent.user.id })
+        .andWhere('wt.transaction_type = :type', { type: 'payout' })
+        .andWhere('wt.created_at >= :date', { date: thirtyDaysAgo })
+        .select('SUM(wt.amount)', 'total')
+        .getRawOne(),
+  
+      this.walletTransactionRepository.count({
+        where: { agent: { id: agent.user.id } }
+      })
+    ]);
+  
+    return {
+      earningsLast30Days: parseFloat(recentEarnings.total) || 0,
+      payoutsLast30Days: parseFloat(recentPayouts.total) || 0,
+      totalTransactions: totalTransactions,
+      averageTransactionAmount: totalTransactions > 0 
+        ? agent.totalEarned / totalTransactions 
+        : 0
+    };
+  }
+  
+  // Helper method for payout history
+  private async getPayoutHistory(agentId: number, page: number = 1, limit: number = 10, filters?: any) {
+    const skip = (page - 1) * limit;
+  
+    const query = this.paymentRepo
+      .createQueryBuilder('payment')
+      .leftJoinAndSelect('payment.agent', 'agent')
+      .leftJoinAndSelect('payment.processedBy', 'admin')
+      .where('payment.agent_id = :agentId', { agentId })
+      .orderBy('payment.createdAt', 'DESC');
+  
+    if (filters?.status) {
+      query.andWhere('payment.status = :status', { status: filters.status });
+    }
+  
+    if (filters?.dateFrom && filters?.dateTo) {
+      query.andWhere('payment.paid_at BETWEEN :dateFrom AND :dateTo', {
+        dateFrom: filters.dateFrom,
+        dateTo: filters.dateTo,
+      });
+    }
+  
+    const [payments, total] = await query
+      .skip(skip)
+      .take(limit)
+      .getManyAndCount();
+  
+    return {
+      data: payments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+  
+  // Helper method for monthly earning trend
+  private async getMonthlyEarningTrend(agentId: number) {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  
+    const monthlyEarnings = await this.walletTransactionRepository
+      .createQueryBuilder('wt')
+      .select("TO_CHAR(wt.created_at, 'YYYY-MM') as month")
+      .addSelect('SUM(wt.amount)', 'total')
+      .where('wt.agent_id = :agentId', { agentId })
+      .andWhere('wt.transaction_type = :type', { type: 'earning' })
+      .andWhere('wt.created_at >= :date', { date: sixMonthsAgo })
+      .groupBy("TO_CHAR(wt.created_at, 'YYYY-MM')")
+      .orderBy('month', 'ASC')
+      .getRawMany();
+  
+    return monthlyEarnings.map(item => ({
+      month: item.month,
+      earnings: parseFloat(item.total) || 0
+    }));
+  }
 
 async registerAgent(
   registerDto: RegisterDto & { cityIds: any[]; areaIds?: any[]},
